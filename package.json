@@ -1,0 +1,20 @@
+{
+  "name": "muse-js",
+  "version": "1.0.0",
+  "description": "Muse 2016 EEG Headset JavaScript Library",
+  "main": "index.js",
+  "repository": "https://github.com/urish/muse-js",
+  "author": "Uri Shaked <uri@salsa4fun.co.il>",
+  "license": "MIT",
+  "scripts": {
+    "start": "node demo/fuse"
+  },
+  "devDependencies": {
+    "fuse-box": "^2.0.0",
+    "typescript": "^2.3.3"
+  },
+  "dependencies": {
+    "@types/text-encoding": "^0.0.30",
+    "@types/web-bluetooth": "^0.0.2"
+  }
+}

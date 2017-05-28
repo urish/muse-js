@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "removeComments": false,
+    "sourceMap": true,
+    "noEmitOnError": true,
+    "outDir": "dist/",
+    "lib": ["es5", "dom", "es2015.core", "es2015.promise", "es2015.collection", "es2015.iterable"],
+    "types": ["web-bluetooth", "text-encoding"]
+  }
+}
