@@ -7,14 +7,32 @@
   "author": "Uri Shaked <uri@salsa4fun.co.il>",
   "license": "MIT",
   "scripts": {
-    "start": "node demo/fuse"
+    "start": "node demo/fuse",
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
   "devDependencies": {
+    "@types/jest": "^19.2.3",
     "fuse-box": "^2.0.0",
+    "jest": "^20.0.4",
+    "text-encoding": "^0.6.4",
     "typescript": "^2.3.3"
   },
   "dependencies": {
     "@types/text-encoding": "^0.0.30",
-    "@types/web-bluetooth": "^0.0.2"
+    "@types/web-bluetooth": "^0.0.2",
+    "rxjs": "^5.4.0"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "ts",
+      "js"
+    ],
+    "transform": {
+      "^.+\\.ts$": "<rootDir>/typescript-preprocessor.js"
+    },
+    "testMatch": [
+      "**/*.spec.ts"
+    ]
   }
 }

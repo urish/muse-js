@@ -1,12 +1,15 @@
 import { MuseClient } from './../lib/muse';
 
-(window as any).connect = () => {
+(window as any).connect = async () => {
     let client = new MuseClient();
-    client.connect()
-        .then(() => {
-            console.log('Connected!');
-        })
-        .catch((err) => {
-            console.error('Connection failed', err);
+    try {
+        await client.connect();
+        console.log('Connected!');
+        await client.start();
+        client.eegReadings.subscribe(reading => {
+            console.log('eeg reading', reading);
         });
-}
+    } catch (err) {
+        console.error('Connection failed', err);
+    }
+};
