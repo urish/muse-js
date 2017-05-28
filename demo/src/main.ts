@@ -34,7 +34,14 @@ import { MuseClient, EEGReading } from './../../lib/muse';
             plot(reading);
         });
         client.telemetryData.subscribe(reading => {
-            console.log('telemery', reading);
+            document.getElementById('temperature')!.innerText = reading.temperature.toString() + '℃';
+            document.getElementById('batteryLevel')!.innerText = reading.batteryLevel.toFixed(2) + '%';
+        });
+        client.accelerometerData.subscribe(accel => {
+            const normalize = (v: number) => (v / 16384.).toFixed(2) + 'g';
+            document.getElementById('accelerometer-x')!.innerText = normalize(accel.samples[2].x);
+            document.getElementById('accelerometer-y')!.innerText = normalize(accel.samples[2].y);
+            document.getElementById('accelerometer-z')!.innerText = normalize(accel.samples[2].z);
         });
     } catch (err) {
         console.error('Connection failed', err);

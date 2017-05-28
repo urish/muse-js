@@ -10,3 +10,14 @@ export interface TelemetryData {
     fuelGaugeVoltage: number;
     temperature: number;
 };
+
+export interface XYZ {
+    x: number;
+    y: number;
+    z: number;
+};
+
+export interface AccelerometerData {
+    sequenceId: number;
+    samples: XYZ[];
+};

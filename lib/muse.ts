@@ -1,13 +1,16 @@
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/merge';
 
-import { EEGReading, TelemetryData } from './muse-interfaces';
-import { decodeEEGSamples, parseTelemetry } from './muse-parse';
+import { EEGReading, TelemetryData, AccelerometerData } from './muse-interfaces';
+import { decodeEEGSamples, parseTelemetry, parseAccelerometer } from './muse-parse';
 import { encodeCommand, decodeResponse, observableCharacteristic } from './muse-utils';
+
+export { EEGReading, TelemetryData, AccelerometerData };
 
 const MUSE_SERVICE = 0xfe8d;
 const CONTROL_CHARACTERISTIC = '273e0001-4c4d-454d-96be-f03bac821358';
 const TELEMETRY_CHARACTERISTIC = '273e000b-4c4d-454d-96be-f03bac821358';
+const ACCELEROMETER_CHARACTERISTIC = '273e000a-4c4d-454d-96be-f03bac821358';
 const EEG_CHARACTERISTICS = [
     '273e0003-4c4d-454d-96be-f03bac821358',
     '273e0004-4c4d-454d-96be-f03bac821358',
@@ -22,6 +25,7 @@ export class MuseClient {
     private eegCharacteristics: BluetoothRemoteGATTCharacteristic[];
 
     public telemetryData: Observable<TelemetryData>;
+    public accelerometerData: Observable<AccelerometerData>;
     public eegReadings: Observable<EEGReading>;
 
     async connect() {
@@ -41,6 +45,11 @@ export class MuseClient {
         const telemetryCharacteristic = await service.getCharacteristic(TELEMETRY_CHARACTERISTIC);
         this.telemetryData = observableCharacteristic(telemetryCharacteristic)
             .map(parseTelemetry);
+
+        // Accelerometer
+        const accelerometerCharacteristic = await service.getCharacteristic(ACCELEROMETER_CHARACTERISTIC);
+        this.accelerometerData = observableCharacteristic(accelerometerCharacteristic)
+            .map(parseAccelerometer);
 
         // EEG
         this.eegCharacteristics = [];

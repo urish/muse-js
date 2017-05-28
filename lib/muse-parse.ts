@@ -1,4 +1,4 @@
-import { EEGReading, TelemetryData } from './muse-interfaces';
+import { EEGReading, TelemetryData, AccelerometerData } from './muse-interfaces';
 
 export function decodeSigned12BitData(samples: Uint8Array) {
     const samples12Bit = [];
@@ -27,5 +27,19 @@ export function parseTelemetry(data: DataView): TelemetryData {
         fuelGaugeVoltage: data.getUint16(4) * 2.2,
         // Next 2 bytes are probably ADC millivolt level, not sure
         temperature: data.getUint16(8),
+    };
+}
+
+export function parseAccelerometer(data: DataView): AccelerometerData {
+    function sample(startIndex: number) {
+        return {
+            x: data.getInt16(startIndex),
+            y: data.getInt16(startIndex + 2),
+            z: data.getInt16(startIndex + 4),
+        };
+    }
+    return {
+        sequenceId: data.getUint16(0),
+        samples: [sample(2), sample(8), sample(14)]
     };
 }
