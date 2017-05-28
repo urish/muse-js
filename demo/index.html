@@ -5,6 +5,16 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Muse JS Demo App</title>
     <style>
+        .electrode-section {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 5px;
+        }
+
+        .electrode-item {
+            margin: 5px;
+        }
+
         canvas {
             background: #333;
             border: solid black 1px;
@@ -16,20 +26,32 @@
         Connect!
     </button>
 
-    <h3>Electrode 1</h3>
-    <canvas id="electrode1"></canvas>
+    <div class="electrode-section">
+        <div class="electrode-item">
+            <h3>Electrode 1</h3>
+            <canvas id="electrode1"></canvas>
+        </div>
 
-    <h3>Electrode 2</h3>
-    <canvas id="electrode2"></canvas>
+        <div class="electrode-item">
+            <h3>Electrode 2</h3>
+            <canvas id="electrode2"></canvas>
+        </div>
 
-    <h3>Electrode 3</h3>
-    <canvas id="electrode3"></canvas>
-    
-    <h3>Electrode 4</h3>
-    <canvas id="electrode4"></canvas>
+        <div class="electrode-item">
+            <h3>Electrode 3</h3>
+            <canvas id="electrode3"></canvas>
+        </div>
 
-    <h3>Electrode 5</h3>
-    <canvas id="electrode5"></canvas>
+        <div class="electrode-item">
+            <h3>Electrode 4</h3>
+            <canvas id="electrode4"></canvas>
+        </div>
+
+        <div class="electrode-item">
+            <h3>Electrode 5</h3>
+            <canvas id="electrode5"></canvas>
+        </div>
+    </div>
 
     $bundles
 </body>

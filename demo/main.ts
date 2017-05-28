@@ -16,7 +16,7 @@ import { MuseClient, EEGReading } from './../lib/muse';
         context.clearRect(0, 0, canvas.width, canvas.height);
 
         for (let i = 0; i < reading.samples.length; i++) {
-            const sample = reading.samples[i] / 50.;
+            const sample = reading.samples[i] / 15.;
             if (sample > 0) {
                 context.fillRect(i * 25, height - sample, width, sample);
             } else {
