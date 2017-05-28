@@ -14,7 +14,7 @@ const fuse = FuseBox.init({
 	plugins: [
 		WebIndexPlugin({
 			title: "",
-			template: "demo/index.html"
+			template: "index.html"
 		}), [
 			SassPlugin({ outputStyle: 'compressed' }),
 			CSSPlugin()
