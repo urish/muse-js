@@ -14,7 +14,7 @@ const fuse = FuseBox.init({
 	plugins: [
 		WebIndexPlugin({
 			title: "",
-			template: "index.html"
+			template: "src/index.html"
 		}), [
 			SassPlugin({ outputStyle: 'compressed' }),
 			CSSPlugin()
@@ -30,8 +30,8 @@ fuse.dev({ port: 4445 });
 // bundle application
 fuse.bundle("app")
 	.sourceMaps(true)
-	.instructions(" > demo/main.ts")
-	.watch('demo/**')
+	.instructions(" > demo/src/main.ts")
+	.watch('demo/src/**|lib/**')
 	.hmr();
 
 // run the factory
