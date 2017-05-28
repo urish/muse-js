@@ -33,6 +33,9 @@ import { MuseClient, EEGReading } from './../../lib/muse';
         client.eegReadings.subscribe(reading => {
             plot(reading);
         });
+        client.telemetryData.subscribe(reading => {
+            console.log('telemery', reading);
+        });
     } catch (err) {
         console.error('Connection failed', err);
     }

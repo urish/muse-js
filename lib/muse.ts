@@ -1,27 +1,27 @@
-import { encodeCommand, decodeResponse, observableCharacteristic, decodeEEGSamples } from './muse-utils';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/merge';
 
+import { EEGReading, TelemetryData } from './muse-interfaces';
+import { decodeEEGSamples, parseTelemetry } from './muse-parse';
+import { encodeCommand, decodeResponse, observableCharacteristic } from './muse-utils';
+
 const MUSE_SERVICE = 0xfe8d;
 const CONTROL_CHARACTERISTIC = '273e0001-4c4d-454d-96be-f03bac821358';
+const TELEMETRY_CHARACTERISTIC = '273e000b-4c4d-454d-96be-f03bac821358';
 const EEG_CHARACTERISTICS = [
     '273e0003-4c4d-454d-96be-f03bac821358',
     '273e0004-4c4d-454d-96be-f03bac821358',
     '273e0005-4c4d-454d-96be-f03bac821358',
     '273e0006-4c4d-454d-96be-f03bac821358',
     '273e0007-4c4d-454d-96be-f03bac821358'
-]
+];
 
-export interface EEGReading {
-    electrode: number; // 0 to 4 
-    timestamp: number;
-    samples: number[]; // 12 samples each time
-}
 
 export class MuseClient {
     private controlChar: BluetoothRemoteGATTCharacteristic;
     private eegCharacteristics: BluetoothRemoteGATTCharacteristic[];
 
+    public telemetryData: Observable<TelemetryData>;
     public eegReadings: Observable<EEGReading>;
 
     async connect() {
@@ -30,10 +30,19 @@ export class MuseClient {
         });
         const gatt = await device.gatt!.connect();
         const service = await gatt.getPrimaryService(MUSE_SERVICE);
+
+        // Control
         this.controlChar = await service.getCharacteristic(CONTROL_CHARACTERISTIC);
         observableCharacteristic(this.controlChar).subscribe(data => {
             console.log(decodeResponse(new Uint8Array(data.buffer)));
         });
+
+        // Battery
+        const telemetryCharacteristic = await service.getCharacteristic(TELEMETRY_CHARACTERISTIC);
+        this.telemetryData = observableCharacteristic(telemetryCharacteristic)
+            .map(parseTelemetry);
+
+        // EEG
         this.eegCharacteristics = [];
         const eegObservables = [];
         for (let index = 0; index < EEG_CHARACTERISTICS.length; index++) {
@@ -49,7 +58,7 @@ export class MuseClient {
                 }));
             this.eegCharacteristics.push(eegChar);
         }
-        this.eegReadings = Observable.merge(...eegObservables); 
+        this.eegReadings = Observable.merge(...eegObservables);
         this.sendCommand('v1');
         console.log('Connected, Hooray !');
     }
