@@ -30,7 +30,9 @@ fuse.dev({ port: 4445 });
 // bundle application
 fuse.bundle("app")
 	.sourceMaps(true)
-	.instructions(" > demo/main.ts").watch().hmr()
+	.instructions(" > demo/main.ts")
+	.watch('demo/**')
+	.hmr();
 
 // run the factory
 fuse.run();
