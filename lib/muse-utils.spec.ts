@@ -1,4 +1,4 @@
-import { decodeSigned12BitData, encodeCommand } from './muse-utils';
+import { encodeCommand } from './muse-utils';
 
 import { TextEncoder, TextDecoder } from 'text-encoding'; // polyfill
 
