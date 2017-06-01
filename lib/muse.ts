@@ -61,7 +61,7 @@ export class MuseClient {
                 (await observableCharacteristic(eegChar)).map(data => {
                     return {
                         electrode: index,
-                        timestamp: data.getInt16(0),
+                        timestamp: data.getUint16(0),
                         samples: decodeEEGSamples(new Uint8Array(data.buffer).subarray(2))
                     };
                 }));
