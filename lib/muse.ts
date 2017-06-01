@@ -37,18 +37,18 @@ export class MuseClient {
 
         // Control
         this.controlChar = await service.getCharacteristic(CONTROL_CHARACTERISTIC);
-        observableCharacteristic(this.controlChar).subscribe(data => {
+        (await observableCharacteristic(this.controlChar)).subscribe(data => {
             console.log(decodeResponse(new Uint8Array(data.buffer)));
         });
 
         // Battery
         const telemetryCharacteristic = await service.getCharacteristic(TELEMETRY_CHARACTERISTIC);
-        this.telemetryData = observableCharacteristic(telemetryCharacteristic)
+        this.telemetryData = (await observableCharacteristic(telemetryCharacteristic))
             .map(parseTelemetry);
 
         // Accelerometer
         const accelerometerCharacteristic = await service.getCharacteristic(ACCELEROMETER_CHARACTERISTIC);
-        this.accelerometerData = observableCharacteristic(accelerometerCharacteristic)
+        this.accelerometerData = (await observableCharacteristic(accelerometerCharacteristic))
             .map(parseAccelerometer);
 
         // EEG
@@ -58,7 +58,7 @@ export class MuseClient {
             let characteristicId = EEG_CHARACTERISTICS[index];
             const eegChar = await service.getCharacteristic(characteristicId);
             eegObservables.push(
-                observableCharacteristic(eegChar).map(data => {
+                (await observableCharacteristic(eegChar)).map(data => {
                     return {
                         electrode: index,
                         timestamp: data.getInt16(0),
@@ -68,7 +68,7 @@ export class MuseClient {
             this.eegCharacteristics.push(eegChar);
         }
         this.eegReadings = Observable.merge(...eegObservables);
-        this.sendCommand('v1');
+        await this.sendCommand('v1');
         console.log('Connected, Hooray !');
     }
 
@@ -78,11 +78,11 @@ export class MuseClient {
 
     async start() {
         // Subscribe to egg characteristics
-        this.pause();
+        await this.pause();
         // Select preset number 20
         await this.controlChar.writeValue(encodeCommand('p20'));
         await this.controlChar.writeValue(encodeCommand('s'));
-        this.resume();
+        await this.resume();
     }
 
     async pause() {

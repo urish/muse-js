@@ -14,8 +14,8 @@ export function encodeCommand(cmd: string) {
 	return encoded;
 }
 
-export function observableCharacteristic(characteristic: BluetoothRemoteGATTCharacteristic) {
-	characteristic.startNotifications();
+export async function observableCharacteristic(characteristic: BluetoothRemoteGATTCharacteristic) {
+	await characteristic.startNotifications();
 	const disconnected = Observable.fromEvent(characteristic.service!.device, 'gattserverdisconnected');
 	return Observable.fromEvent(characteristic, 'characteristicvaluechanged')
 		.takeUntil(disconnected)
