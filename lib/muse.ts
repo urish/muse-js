@@ -27,6 +27,7 @@ export class MuseClient {
     public telemetryData: Observable<TelemetryData>;
     public accelerometerData: Observable<AccelerometerData>;
     public eegReadings: Observable<EEGReading>;
+    public controlData: Observable<string>;
 
     async connect() {
         const device = await navigator.bluetooth.requestDevice({
@@ -37,9 +38,8 @@ export class MuseClient {
 
         // Control
         this.controlChar = await service.getCharacteristic(CONTROL_CHARACTERISTIC);
-        (await observableCharacteristic(this.controlChar)).subscribe(data => {
-            console.log(decodeResponse(new Uint8Array(data.buffer)));
-        });
+        this.controlData = (await observableCharacteristic(this.controlChar))
+            .map(data => decodeResponse(new Uint8Array(data.buffer)));
 
         // Battery
         const telemetryCharacteristic = await service.getCharacteristic(TELEMETRY_CHARACTERISTIC);
@@ -69,7 +69,6 @@ export class MuseClient {
         }
         this.eegReadings = Observable.merge(...eegObservables);
         await this.sendCommand('v1');
-        console.log('Connected, Hooray !');
     }
 
     async sendCommand(cmd: string) {
