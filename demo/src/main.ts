@@ -26,9 +26,12 @@ import { MuseClient, EEGReading } from './../../lib/muse';
     }
 
     let client = new MuseClient();
+    client.connectionStatus.subscribe(status => {
+        console.log(status ? 'Connected!' : 'Disconnected')
+    });
+
     try {
         await client.connect();
-        console.log('Connected!');
         await client.start();
         client.eegReadings.subscribe(reading => {
             plot(reading);

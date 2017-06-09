@@ -1,5 +1,7 @@
 import { Observable } from 'rxjs/Observable';
+import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import 'rxjs/add/observable/merge';
+import 'rxjs/add/operator/first';
 
 import { EEGReading, TelemetryData, AccelerometerData } from './muse-interfaces';
 import { decodeEEGSamples, parseTelemetry, parseAccelerometer } from './muse-parse';
@@ -19,11 +21,12 @@ const EEG_CHARACTERISTICS = [
     '273e0007-4c4d-454d-96be-f03bac821358'
 ];
 
-
 export class MuseClient {
+    private gatt: BluetoothRemoteGATTServer | null = null;
     private controlChar: BluetoothRemoteGATTCharacteristic;
     private eegCharacteristics: BluetoothRemoteGATTCharacteristic[];
 
+    public connectionStatus = new BehaviorSubject<boolean>(false);
     public telemetryData: Observable<TelemetryData>;
     public accelerometerData: Observable<AccelerometerData>;
     public eegReadings: Observable<EEGReading>;
@@ -33,8 +36,12 @@ export class MuseClient {
         const device = await navigator.bluetooth.requestDevice({
             filters: [{ services: [MUSE_SERVICE] }]
         });
-        const gatt = await device.gatt!.connect();
-        const service = await gatt.getPrimaryService(MUSE_SERVICE);
+        this.gatt = await device.gatt!.connect();
+        const service = await this.gatt.getPrimaryService(MUSE_SERVICE);
+        Observable.fromEvent<void>(device, 'gattserverdisconnected').first().subscribe(() => {
+            this.gatt = null;
+            this.connectionStatus.next(false);
+        });
 
         // Control
         this.controlChar = await service.getCharacteristic(CONTROL_CHARACTERISTIC);
@@ -69,6 +76,7 @@ export class MuseClient {
         }
         this.eegReadings = Observable.merge(...eegObservables);
         await this.sendCommand('v1');
+        this.connectionStatus.next(true);
     }
 
     async sendCommand(cmd: string) {
@@ -90,5 +98,12 @@ export class MuseClient {
 
     async resume() {
         await this.sendCommand('d');
+    }
+
+    disconnect() {
+        if (this.gatt) {
+            this.gatt.disconnect();
+            this.connectionStatus.next(false);
+        }
     }
 }
