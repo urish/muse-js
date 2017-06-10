@@ -1,4 +1,4 @@
-import { EEGReading, TelemetryData, AccelerometerData } from './muse-interfaces';
+import { EEGReading, TelemetryData, AccelerometerData, GyroscopeData } from './muse-interfaces';
 
 export function decodeSigned12BitData(samples: Uint8Array) {
     const samples12Bit = [];
@@ -42,4 +42,8 @@ export function parseAccelerometer(data: DataView): AccelerometerData {
         sequenceId: data.getUint16(0),
         samples: [sample(2), sample(8), sample(14)]
     };
+}
+
+export function parseGyroscope(data: DataView): GyroscopeData {
+    return parseAccelerometer(data);
 }

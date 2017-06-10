@@ -21,3 +21,5 @@ export interface AccelerometerData {
     sequenceId: number;
     samples: XYZ[];
 };
+
+export type GyroscopeData = AccelerometerData;

@@ -3,15 +3,16 @@ import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import 'rxjs/add/observable/merge';
 import 'rxjs/add/operator/first';
 
-import { EEGReading, TelemetryData, AccelerometerData } from './muse-interfaces';
-import { decodeEEGSamples, parseTelemetry, parseAccelerometer } from './muse-parse';
+import { EEGReading, TelemetryData, AccelerometerData, GyroscopeData, XYZ } from './muse-interfaces';
+import { decodeEEGSamples, parseTelemetry, parseAccelerometer, parseGyroscope } from './muse-parse';
 import { encodeCommand, decodeResponse, observableCharacteristic } from './muse-utils';
 
-export { EEGReading, TelemetryData, AccelerometerData };
+export { EEGReading, TelemetryData, AccelerometerData, GyroscopeData, XYZ };
 
 const MUSE_SERVICE = 0xfe8d;
 const CONTROL_CHARACTERISTIC = '273e0001-4c4d-454d-96be-f03bac821358';
 const TELEMETRY_CHARACTERISTIC = '273e000b-4c4d-454d-96be-f03bac821358';
+const GYROSCOPE_CHARACTERISTIC = '273e0009-4c4d-454d-96be-f03bac821358';
 const ACCELEROMETER_CHARACTERISTIC = '273e000a-4c4d-454d-96be-f03bac821358';
 const EEG_CHARACTERISTICS = [
     '273e0003-4c4d-454d-96be-f03bac821358',
@@ -28,6 +29,7 @@ export class MuseClient {
 
     public connectionStatus = new BehaviorSubject<boolean>(false);
     public telemetryData: Observable<TelemetryData>;
+    public gyroscopeData: Observable<GyroscopeData>;
     public accelerometerData: Observable<AccelerometerData>;
     public eegReadings: Observable<EEGReading>;
     public controlData: Observable<string>;
@@ -52,6 +54,11 @@ export class MuseClient {
         const telemetryCharacteristic = await service.getCharacteristic(TELEMETRY_CHARACTERISTIC);
         this.telemetryData = (await observableCharacteristic(telemetryCharacteristic))
             .map(parseTelemetry);
+
+        // Gyroscope
+        const gyroscopeCharacteristic = await service.getCharacteristic(GYROSCOPE_CHARACTERISTIC);
+        this.gyroscopeData = (await observableCharacteristic(gyroscopeCharacteristic))
+            .map(parseGyroscope);
 
         // Accelerometer
         const accelerometerCharacteristic = await service.getCharacteristic(ACCELEROMETER_CHARACTERISTIC);
