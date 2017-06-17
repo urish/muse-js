@@ -1,4 +1,4 @@
-import { MuseClient, EEGReading } from './../../src/lib/muse';
+import { MuseClient, EEGReading } from './../../src/muse';
 
 (window as any).connect = async () => {
     let canvases = Array.from(document.querySelectorAll('canvas'));

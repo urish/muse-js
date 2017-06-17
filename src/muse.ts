@@ -4,9 +4,9 @@ import 'rxjs/add/observable/merge';
 import 'rxjs/add/operator/first';
 import 'rxjs/add/operator/share';
 
-import { EEGReading, TelemetryData, AccelerometerData, GyroscopeData, XYZ, MuseControlResponse } from './muse-interfaces';
-import { parseControl, decodeEEGSamples, parseTelemetry, parseAccelerometer, parseGyroscope } from './muse-parse';
-import { encodeCommand, decodeResponse, observableCharacteristic } from './muse-utils';
+import { EEGReading, TelemetryData, AccelerometerData, GyroscopeData, XYZ, MuseControlResponse } from './lib/muse-interfaces';
+import { parseControl, decodeEEGSamples, parseTelemetry, parseAccelerometer, parseGyroscope } from './lib/muse-parse';
+import { encodeCommand, decodeResponse, observableCharacteristic } from './lib/muse-utils';
 
 export { EEGReading, TelemetryData, AccelerometerData, GyroscopeData, XYZ, MuseControlResponse };
 
