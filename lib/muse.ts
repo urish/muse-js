@@ -2,12 +2,13 @@ import { Observable } from 'rxjs/Observable';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import 'rxjs/add/observable/merge';
 import 'rxjs/add/operator/first';
+import 'rxjs/add/operator/share';
 
-import { EEGReading, TelemetryData, AccelerometerData, GyroscopeData, XYZ } from './muse-interfaces';
-import { decodeEEGSamples, parseTelemetry, parseAccelerometer, parseGyroscope } from './muse-parse';
+import { EEGReading, TelemetryData, AccelerometerData, GyroscopeData, XYZ, MuseControlResponse } from './muse-interfaces';
+import { parseControl, decodeEEGSamples, parseTelemetry, parseAccelerometer, parseGyroscope } from './muse-parse';
 import { encodeCommand, decodeResponse, observableCharacteristic } from './muse-utils';
 
-export { EEGReading, TelemetryData, AccelerometerData, GyroscopeData, XYZ };
+export { EEGReading, TelemetryData, AccelerometerData, GyroscopeData, XYZ, MuseControlResponse };
 
 const MUSE_SERVICE = 0xfe8d;
 const CONTROL_CHARACTERISTIC = '273e0001-4c4d-454d-96be-f03bac821358';
@@ -28,6 +29,7 @@ export class MuseClient {
     private eegCharacteristics: BluetoothRemoteGATTCharacteristic[];
 
     public connectionStatus = new BehaviorSubject<boolean>(false);
+    public controlResponses: Observable<MuseControlResponse>;
     public telemetryData: Observable<TelemetryData>;
     public gyroscopeData: Observable<GyroscopeData>;
     public accelerometerData: Observable<AccelerometerData>;
@@ -48,7 +50,9 @@ export class MuseClient {
         // Control
         this.controlChar = await service.getCharacteristic(CONTROL_CHARACTERISTIC);
         this.controlData = (await observableCharacteristic(this.controlChar))
-            .map(data => decodeResponse(new Uint8Array(data.buffer)));
+            .map(data => decodeResponse(new Uint8Array(data.buffer)))
+            .share();
+        this.controlResponses = parseControl(this.controlData);
 
         // Battery
         const telemetryCharacteristic = await service.getCharacteristic(TELEMETRY_CHARACTERISTIC);

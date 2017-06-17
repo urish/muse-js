@@ -22,4 +22,9 @@ export interface AccelerometerData {
     samples: XYZ[];
 };
 
+export interface MuseControlResponse {
+    rc: number;
+    [key: string]: string | number;
+}
+
 export type GyroscopeData = AccelerometerData;

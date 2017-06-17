@@ -33,6 +33,18 @@ import { MuseClient, EEGReading } from './../../lib/muse';
     try {
         await client.connect();
         await client.start();
+        client.controlResponses.subscribe(response => {
+            if (response.hn) {
+                document.getElementById('headset-name')!.innerText = response.hn as string;
+            }
+            if (response.hw) {
+                document.getElementById('hardware-version')!.innerText = response.hw as string;
+            }
+            if (response.fw) {
+                document.getElementById('firmware-version')!.innerText = response.fw as string;
+            }
+            console.log('control response:', response);
+        })
         client.eegReadings.subscribe(reading => {
             plot(reading);
         });

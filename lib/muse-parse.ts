@@ -1,4 +1,25 @@
+import { Observable } from 'rxjs/Observable';
+
+import 'rxjs/add/operator/concatMap';
+import 'rxjs/add/operator/scan';
+import 'rxjs/add/operator/filter';
+import 'rxjs/add/operator/map';
+
 import { EEGReading, TelemetryData, AccelerometerData, GyroscopeData } from './muse-interfaces';
+
+export function parseControl(controlData: Observable<string>) {
+    return controlData
+        .concatMap(data => data.split(''))
+        .scan((acc, value) => {
+            if (acc.indexOf('}') >= 0) {
+                return value;
+            } else {
+                return acc + value;
+            }
+        }, '')
+        .filter(value => value.indexOf('}') >= 0)
+        .map(value => JSON.parse(value));
+}
 
 export function decodeSigned12BitData(samples: Uint8Array) {
     const samples12Bit = [];

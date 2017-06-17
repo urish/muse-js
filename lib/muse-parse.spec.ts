@@ -1,4 +1,47 @@
-import { decodeSigned12BitData, parseTelemetry, parseAccelerometer } from './muse-parse';
+import { Observable } from 'rxjs/Observable';
+import { parseControl, decodeSigned12BitData, parseTelemetry, parseAccelerometer } from './muse-parse';
+
+import 'rxjs/add/observable/from';
+import 'rxjs/add/operator/toArray';
+import 'rxjs/add/operator/toPromise';
+
+describe('parseControl', () => {
+    it('should correctly parse JSON responses into objects', async () => {
+        const input = Observable.from([
+            '{"ap":"headset",',
+            '"sp":"RevE",',
+            '"tp":"consumer",',
+            '"hw":"3.1",',
+            '"bn":27,',
+            '"fw":"1.2.13",',
+            '"bl":"1.2.3",',
+            '"pv":1,',
+            '"rc":0}',
+            '{"rc":0}',
+            '{"rc":0}',
+            '{"hn":"Muse-1324",',
+            '"sn":"2031-TZRW-132',
+            '4",',
+            '"ma":"00-55-da-b0-1',
+            '3-24",',
+            '"id":"07473435 3231',
+            '3630 004f003a",',
+            '"bp":82,',
+            '"ts":0,',
+            '"ps":32,',
+            '"rc":0}{"r',
+            'c":0}',
+        ]);
+        const results = await parseControl(input).toArray().toPromise();
+        expect(results).toEqual([
+            { "ap": "headset", "sp": "RevE", "tp": "consumer", "hw": "3.1", "bn": 27, "fw": "1.2.13", "bl": "1.2.3", "pv": 1, "rc": 0 },
+            { "rc": 0 },
+            { "rc": 0 },
+            { "hn": "Muse-1324", "sn": "2031-TZRW-1324", "ma": "00-55-da-b0-13-24", "id": "07473435 32313630 004f003a", "bp": 82, "ts": 0, "ps": 32, "rc": 0 },
+            { "rc": 0 }
+        ]);
+    });
+});
 
 describe('decodeSigned12BitData', () => {
     it('should correctly decode 12-bit EEG samples received from muse', () => {
