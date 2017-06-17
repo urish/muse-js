@@ -10,7 +10,7 @@ import { encodeCommand, decodeResponse, observableCharacteristic } from './muse-
 
 export { EEGReading, TelemetryData, AccelerometerData, GyroscopeData, XYZ, MuseControlResponse };
 
-const MUSE_SERVICE = 0xfe8d;
+export const MUSE_SERVICE = 0xfe8d;
 const CONTROL_CHARACTERISTIC = '273e0001-4c4d-454d-96be-f03bac821358';
 const TELEMETRY_CHARACTERISTIC = '273e000b-4c4d-454d-96be-f03bac821358';
 const GYROSCOPE_CHARACTERISTIC = '273e0009-4c4d-454d-96be-f03bac821358';
@@ -36,13 +36,18 @@ export class MuseClient {
     public accelerometerData: Observable<AccelerometerData>;
     public eegReadings: Observable<EEGReading>;
 
-    async connect() {
-        const device = await navigator.bluetooth.requestDevice({
-            filters: [{ services: [MUSE_SERVICE] }]
-        });
-        this.gatt = await device.gatt!.connect();
+    async connect(gatt?: BluetoothRemoteGATTServer) {
+        if (gatt) {
+            this.gatt = gatt;
+        } else {
+            const device = await navigator.bluetooth.requestDevice({
+                filters: [{ services: [MUSE_SERVICE] }]
+            });
+            this.gatt = await device.gatt!.connect();
+        }
+        
         const service = await this.gatt.getPrimaryService(MUSE_SERVICE);
-        Observable.fromEvent<void>(device, 'gattserverdisconnected').first().subscribe(() => {
+        Observable.fromEvent<void>(this.gatt.device, 'gattserverdisconnected').first().subscribe(() => {
             this.gatt = null;
             this.connectionStatus.next(false);
         });
