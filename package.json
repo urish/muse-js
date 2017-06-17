@@ -2,7 +2,8 @@
   "name": "muse-js",
   "version": "0.3.0",
   "description": "Muse 2016 EEG Headset JavaScript Library",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
   "repository": "https://github.com/urish/muse-js",
   "author": "Uri Shaked <uri@salsa4fun.co.il>",
   "license": "MIT",
@@ -14,21 +15,7 @@
     "test:watch": "jest --watch"
   },
   "files": [
-    "index.js",
-    "index.js.map",
-    "index.d.ts",
-    "lib/muse-interfaces.js",
-    "lib/muse-interfaces.js.map",
-    "lib/muse-interfaces.d.ts",
-    "lib/muse-parse.js",
-    "lib/muse-parse.js.map",
-    "lib/muse-parse.d.ts",
-    "lib/muse-utils.js",
-    "lib/muse-utils.js.map",
-    "lib/muse-utils.d.ts",
-    "lib/muse.js",
-    "lib/muse.js.map",
-    "lib/muse.d.ts"
+    "dist"
   ],
   "devDependencies": {
     "@types/jest": "^19.2.3",
