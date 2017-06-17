@@ -18,7 +18,7 @@
     "dist"
   ],
   "devDependencies": {
-    "@types/jest": "^19.2.3",
+    "@types/jest": "^20.0.0",
     "fuse-box": "^2.0.0",
     "jest": "^20.0.4",
     "text-encoding": "^0.6.4",
