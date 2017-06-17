@@ -29,12 +29,12 @@ export class MuseClient {
     private eegCharacteristics: BluetoothRemoteGATTCharacteristic[];
 
     public connectionStatus = new BehaviorSubject<boolean>(false);
+    public rawControlData: Observable<string>;
     public controlResponses: Observable<MuseControlResponse>;
     public telemetryData: Observable<TelemetryData>;
     public gyroscopeData: Observable<GyroscopeData>;
     public accelerometerData: Observable<AccelerometerData>;
     public eegReadings: Observable<EEGReading>;
-    public controlData: Observable<string>;
 
     async connect() {
         const device = await navigator.bluetooth.requestDevice({
@@ -49,10 +49,10 @@ export class MuseClient {
 
         // Control
         this.controlChar = await service.getCharacteristic(CONTROL_CHARACTERISTIC);
-        this.controlData = (await observableCharacteristic(this.controlChar))
+        this.rawControlData = (await observableCharacteristic(this.controlChar))
             .map(data => decodeResponse(new Uint8Array(data.buffer)))
             .share();
-        this.controlResponses = parseControl(this.controlData);
+        this.controlResponses = parseControl(this.rawControlData);
 
         // Battery
         const telemetryCharacteristic = await service.getCharacteristic(TELEMETRY_CHARACTERISTIC);
