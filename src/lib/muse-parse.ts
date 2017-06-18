@@ -21,7 +21,7 @@ export function parseControl(controlData: Observable<string>) {
         .map(value => JSON.parse(value));
 }
 
-export function decodeSigned12BitData(samples: Uint8Array) {
+export function decodeUnsigned12BitData(samples: Uint8Array) {
     const samples12Bit = [];
     for (let i = 0; i < samples.length; i++) {
         if (i % 3 === 0) {
@@ -31,14 +31,12 @@ export function decodeSigned12BitData(samples: Uint8Array) {
             i++;
         }
     }
-    return samples12Bit.map(n => {
-        return (n & 0x800) ? (n - 0x1000) : n;
-    });
+    return samples12Bit;
 }
 
 export function decodeEEGSamples(samples: Uint8Array) {
-    return decodeSigned12BitData(samples)
-        .map(n => 0.48828125 * n);
+    return decodeUnsigned12BitData(samples)
+        .map(n => 0.48828125 * (n - 0x800));
 }
 
 export function parseTelemetry(data: DataView): TelemetryData {

@@ -1,5 +1,5 @@
 import { Observable } from 'rxjs/Observable';
-import { parseControl, decodeSigned12BitData, parseTelemetry, parseAccelerometer } from './muse-parse';
+import { parseControl, decodeUnsigned12BitData, parseTelemetry, parseAccelerometer } from './muse-parse';
 
 import 'rxjs/add/observable/from';
 import 'rxjs/add/operator/toArray';
@@ -43,10 +43,10 @@ describe('parseControl', () => {
     });
 });
 
-describe('decodeSigned12BitData', () => {
+describe('decodeUnsigned12BitData', () => {
     it('should correctly decode 12-bit EEG samples received from muse', () => {
         const input = new Uint8Array([87, 33, 192, 82, 73, 6, 106, 242, 49, 64, 88, 153, 128, 66, 254, 44, 119, 157]);
-        expect(decodeSigned12BitData(input)).toEqual([1394, 448, 1316, -1786, 1711, 561, 1029, -1895, -2044, 766, 711, 1949]);
+        expect(decodeUnsigned12BitData(input)).toEqual([1394, 448, 1316, 2310, 1711, 561, 1029, 2201, 2052, 766, 711, 1949]);
     });
 });
 
