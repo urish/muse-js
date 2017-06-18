@@ -24,6 +24,15 @@ const EEG_CHARACTERISTICS = [
     '273e0007-4c4d-454d-96be-f03bac821358'
 ];
 
+// These names match the characteristics defined in EEG_CHARACTERISTICS above
+export const channelNames = [
+    'TP9',
+    'AF7',
+    'AF8',
+    'TP10',
+    'AUX'
+];
+
 export class MuseClient {
     private gatt: BluetoothRemoteGATTServer | null = null;
     private controlChar: BluetoothRemoteGATTCharacteristic;
