@@ -8,6 +8,7 @@ import { EEGReading, TelemetryData, AccelerometerData, GyroscopeData, XYZ, MuseC
 import { parseControl, decodeEEGSamples, parseTelemetry, parseAccelerometer, parseGyroscope } from './lib/muse-parse';
 import { encodeCommand, decodeResponse, observableCharacteristic } from './lib/muse-utils';
 
+export { zipSamples, EEGSample } from './lib/zip-samples';
 export { EEGReading, TelemetryData, AccelerometerData, GyroscopeData, XYZ, MuseControlResponse };
 
 export const MUSE_SERVICE = 0xfe8d;
@@ -45,7 +46,7 @@ export class MuseClient {
             });
             this.gatt = await device.gatt!.connect();
         }
-        
+
         const service = await this.gatt.getPrimaryService(MUSE_SERVICE);
         Observable.fromEvent<void>(this.gatt.device, 'gattserverdisconnected').first().subscribe(() => {
             this.gatt = null;
