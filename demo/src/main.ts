@@ -36,6 +36,7 @@ import { MuseClient, EEGReading, channelNames } from './../../src/muse';
     });
 
     try {
+        client.enableAux = true;
         await client.connect();
         await client.start();
         document.getElementById('headset-name')!.innerText = client.deviceName;

@@ -4,6 +4,13 @@
 
 Muse 2016 EEG Headset JavaScript Library (using Web Bluetooth)
 
+## Running the demo app
+
+    yarn
+    yarn start
+
+and then open http://localhost:4445/
+
 ## Usage example
 
 ```typescript
@@ -28,9 +35,14 @@ async function main() {
 main();
 ```
 
-## Running the demo app
+## Auxiliary Electrode
 
-    yarn
-    yarn start
-    
-and then open http://localhost:4445/
+The Muse 2016 EEG headsets contains four electrodes, and you can connect an additional Auxiliary electrode through the Micro USB port. By default, muse-js does not read data from the Auxiliary electrode channel. You can change this behavior and enable the Auxiliary electrode by setting the `enableAux` property to `true`, just before calling the `connect` method:
+
+```typescript
+async function main() {
+  let client = new MuseClient();
+  client.enableAux = true;
+  await client.connect();
+}
+```

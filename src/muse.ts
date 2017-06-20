@@ -41,6 +41,7 @@ export class MuseClient {
     private controlChar: BluetoothRemoteGATTCharacteristic;
     private eegCharacteristics: BluetoothRemoteGATTCharacteristic[];
 
+    public enableAux = false;
     public deviceName: string | null = '';
     public connectionStatus = new BehaviorSubject<boolean>(false);
     public rawControlData: Observable<string>;
@@ -92,7 +93,8 @@ export class MuseClient {
         // EEG
         this.eegCharacteristics = [];
         const eegObservables = [];
-        for (let index = 0; index < EEG_CHARACTERISTICS.length; index++) {
+        const channelCount = this.enableAux ? EEG_CHARACTERISTICS.length : 4;
+        for (let index = 0; index < channelCount; index++) {
             let characteristicId = EEG_CHARACTERISTICS[index];
             const eegChar = await service.getCharacteristic(characteristicId);
             eegObservables.push(
