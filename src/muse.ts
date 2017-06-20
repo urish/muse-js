@@ -38,6 +38,7 @@ export class MuseClient {
     private controlChar: BluetoothRemoteGATTCharacteristic;
     private eegCharacteristics: BluetoothRemoteGATTCharacteristic[];
 
+    public deviceName: string | null = '';
     public connectionStatus = new BehaviorSubject<boolean>(false);
     public rawControlData: Observable<string>;
     public controlResponses: Observable<MuseControlResponse>;
@@ -55,6 +56,7 @@ export class MuseClient {
             });
             this.gatt = await device.gatt!.connect();
         }
+        this.deviceName = this.gatt.device.name || null;
 
         const service = await this.gatt.getPrimaryService(MUSE_SERVICE);
         Observable.fromEvent<void>(this.gatt.device, 'gattserverdisconnected').first().subscribe(() => {
