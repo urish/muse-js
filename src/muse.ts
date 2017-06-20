@@ -69,25 +69,22 @@ export class MuseClient {
 
         // Control
         this.controlChar = await service.getCharacteristic(CONTROL_CHARACTERISTIC);
-        this.rawControlData = (await observableCharacteristic(this.controlChar))
+        this.rawControlData = observableCharacteristic(this.controlChar)
             .map(data => decodeResponse(new Uint8Array(data.buffer)))
             .share();
         this.controlResponses = parseControl(this.rawControlData);
 
         // Battery
         const telemetryCharacteristic = await service.getCharacteristic(TELEMETRY_CHARACTERISTIC);
-        this.telemetryData = (await observableCharacteristic(telemetryCharacteristic))
-            .map(parseTelemetry);
+        this.telemetryData = observableCharacteristic(telemetryCharacteristic).map(parseTelemetry);
 
         // Gyroscope
         const gyroscopeCharacteristic = await service.getCharacteristic(GYROSCOPE_CHARACTERISTIC);
-        this.gyroscopeData = (await observableCharacteristic(gyroscopeCharacteristic))
-            .map(parseGyroscope);
+        this.gyroscopeData = observableCharacteristic(gyroscopeCharacteristic).map(parseGyroscope);
 
         // Accelerometer
         const accelerometerCharacteristic = await service.getCharacteristic(ACCELEROMETER_CHARACTERISTIC);
-        this.accelerometerData = (await observableCharacteristic(accelerometerCharacteristic))
-            .map(parseAccelerometer);
+        this.accelerometerData = observableCharacteristic(accelerometerCharacteristic).map(parseAccelerometer);
 
         // EEG
         this.eegCharacteristics = [];
@@ -96,7 +93,7 @@ export class MuseClient {
             let characteristicId = EEG_CHARACTERISTICS[index];
             const eegChar = await service.getCharacteristic(characteristicId);
             eegObservables.push(
-                (await observableCharacteristic(eegChar)).map(data => {
+                observableCharacteristic(eegChar).map(data => {
                     return {
                         electrode: index,
                         timestamp: data.getUint16(0),
