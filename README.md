@@ -13,7 +13,7 @@ and then open http://localhost:4445/
 
 ## Usage example
 
-```typescript
+```javascript
 
 import { MuseClient } from 'muse-js';
 
@@ -35,11 +35,40 @@ async function main() {
 main();
 ```
 
+## Using in node.js
+
+You can use this library to connect to the Muse EEG headset from your node.js application.
+Use the [bleat](https://github.com/thegecko/bleat) package which emulates the Web Bluetooth API on top of [noble](https://github.com/sandeepmistry/noble):
+
+```javascript
+const noble = require('noble');
+const bluetooth = require('bleat').webbluetooth;
+
+async function connect() {
+    let device = await bluetooth.requestDevice({
+        filters: [{ services: [MUSE_SERVICE] }]
+    });
+    const gatt = await device.gatt.connect();
+    const client = new MuseClient();
+    await client.connect(gatt);
+    await client.start();
+    // Now do whatever with muse client...
+}
+
+noble.on('stateChange', (state) => {
+    if (state === 'poweredOn') {
+        connect();
+    }
+});
+```
+
+You can find a fully working example in the [muse-lsl repo](https://github.com/urish/muse-lsl/blob/master/index.js).
+
 ## Auxiliary Electrode
 
 The Muse 2016 EEG headsets contains four electrodes, and you can connect an additional Auxiliary electrode through the Micro USB port. By default, muse-js does not read data from the Auxiliary electrode channel. You can change this behavior and enable the Auxiliary electrode by setting the `enableAux` property to `true`, just before calling the `connect` method:
 
-```typescript
+```javascript
 async function main() {
   let client = new MuseClient();
   client.enableAux = true;
