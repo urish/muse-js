@@ -7,7 +7,7 @@ import 'rxjs/add/operator/concat';
 
 export interface EEGSample {
     timestamp: number;
-    channelData: number[];
+    data: number[];
 };
 
 export function zipSamples(eegReadings: Observable<EEGReading>): Observable<EEGSample> {
@@ -29,13 +29,13 @@ export function zipSamples(eegReadings: Observable<EEGReading>): Observable<EEGS
         .concat(Observable.from([buffer]))
         .mergeMap((readings: EEGReading[]) => {
             const result = readings[0].samples.map((x, index) => {
-                const channelData = [NaN, NaN, NaN, NaN, NaN];
+                const data = [NaN, NaN, NaN, NaN, NaN];
                 for (let reading of readings) {
-                    channelData[reading.electrode] = reading.samples[index];
+                    data[reading.electrode] = reading.samples[index];
                 }
                 return {
                     timestamp: readings[0].timestamp,
-                    channelData
+                    data
                 };
             });
             return Observable.from(result);
