@@ -1,8 +1,13 @@
-import { MuseClient, EEGReading } from './../../src/muse';
+import { MuseClient, EEGReading, channelNames } from './../../src/muse';
 
 (window as any).connect = async () => {
-    let canvases = Array.from(document.querySelectorAll('canvas'));
+    let graphTitles = Array.from(document.querySelectorAll('.electrode-item h3'));
+    let canvases = Array.from(document.querySelectorAll('.electrode-item canvas')) as HTMLCanvasElement[];
     let canvasCtx = canvases.map(canvas => canvas.getContext('2d'));
+
+    graphTitles.forEach((item, index) => {
+        item.textContent = channelNames[index];
+    });
 
     function plot(reading: EEGReading) {
         const canvas = canvases[reading.electrode];
@@ -33,18 +38,7 @@ import { MuseClient, EEGReading } from './../../src/muse';
     try {
         await client.connect();
         await client.start();
-        client.controlResponses.subscribe(response => {
-            if (response.hn) {
-                document.getElementById('headset-name')!.innerText = response.hn as string;
-            }
-            if (response.hw) {
-                document.getElementById('hardware-version')!.innerText = response.hw as string;
-            }
-            if (response.fw) {
-                document.getElementById('firmware-version')!.innerText = response.fw as string;
-            }
-            console.log('control response:', response);
-        })
+        document.getElementById('headset-name')!.innerText = client.deviceName;
         client.eegReadings.subscribe(reading => {
             plot(reading);
         });
@@ -57,6 +51,10 @@ import { MuseClient, EEGReading } from './../../src/muse';
             document.getElementById('accelerometer-x')!.innerText = normalize(accel.samples[2].x);
             document.getElementById('accelerometer-y')!.innerText = normalize(accel.samples[2].y);
             document.getElementById('accelerometer-z')!.innerText = normalize(accel.samples[2].z);
+        });
+        await client.deviceInfo().then(deviceInfo => {
+            document.getElementById('hardware-version')!.innerText = deviceInfo.hw;
+            document.getElementById('firmware-version')!.innerText = deviceInfo.fw;
         });
     } catch (err) {
         console.error('Connection failed', err);

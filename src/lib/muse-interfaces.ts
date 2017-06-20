@@ -27,4 +27,15 @@ export interface MuseControlResponse {
     [key: string]: string | number;
 }
 
+export interface MuseDeviceInfo extends MuseControlResponse {
+    ap: string;
+    bl: string;
+    bn: number;
+    fw: string;
+    hw: string;
+    pv: number;
+    sp: string;
+    tp: string;
+}
+
 export type GyroscopeData = AccelerometerData;

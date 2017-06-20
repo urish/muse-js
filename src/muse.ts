@@ -1,10 +1,13 @@
 import { Observable } from 'rxjs/Observable';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import 'rxjs/add/observable/merge';
+import 'rxjs/add/operator/filter';
 import 'rxjs/add/operator/first';
 import 'rxjs/add/operator/share';
+import 'rxjs/add/operator/take';
+import 'rxjs/add/operator/toPromise';
 
-import { EEGReading, TelemetryData, AccelerometerData, GyroscopeData, XYZ, MuseControlResponse } from './lib/muse-interfaces';
+import { EEGReading, TelemetryData, AccelerometerData, GyroscopeData, XYZ, MuseControlResponse, MuseDeviceInfo } from './lib/muse-interfaces';
 import { parseControl, decodeEEGSamples, parseTelemetry, parseAccelerometer, parseGyroscope } from './lib/muse-parse';
 import { encodeCommand, decodeResponse, observableCharacteristic } from './lib/muse-utils';
 
@@ -103,7 +106,6 @@ export class MuseClient {
             this.eegCharacteristics.push(eegChar);
         }
         this.eegReadings = Observable.merge(...eegObservables);
-        await this.sendCommand('v1');
         this.connectionStatus.next(true);
     }
 
@@ -126,6 +128,12 @@ export class MuseClient {
 
     async resume() {
         await this.sendCommand('d');
+    }
+
+    async deviceInfo() {
+        const resultListener = this.controlResponses.filter(r => !!r.fw).take(1).toPromise();
+        await this.sendCommand('v1');
+        return resultListener as Promise<MuseDeviceInfo>;
     }
 
     disconnect() {
