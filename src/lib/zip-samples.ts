@@ -1,12 +1,14 @@
 import { Observable } from 'rxjs/Observable';
 import { EEGReading } from './muse-interfaces';
+import { EEG_FREQUENCY } from './../muse';
 
 import 'rxjs/add/observable/from';
 import 'rxjs/add/operator/mergeMap';
 import 'rxjs/add/operator/concat';
 
 export interface EEGSample {
-    timestamp: number;
+    index: number;
+    timestamp: number; // milliseconds since epoch   
     data: number[];
 };
 
@@ -34,7 +36,8 @@ export function zipSamples(eegReadings: Observable<EEGReading>): Observable<EEGS
                     data[reading.electrode] = reading.samples[index];
                 }
                 return {
-                    timestamp: readings[0].timestamp,
+                    index: readings[0].index,
+                    timestamp: readings[0].timestamp + index * 1000. / EEG_FREQUENCY,
                     data
                 };
             });
