@@ -14,13 +14,13 @@ describe('MuseClient', () => {
         Object.assign(global, { TextDecoder, TextEncoder });
     });
 
-    it('should connect to muse EEG headset', async () => {
+    it('should connect to EEG headset', async () => {
         const client = new MuseClient();
         await client.connect();
     });
 
     describe('start', async () => {
-        it('should send `p20`, `s` and `d` commands to the EEG headset', async () => {
+        it('should send `h`, `s`, `p20` and `d` commands to the EEG headset', async () => {
             const client = new MuseClient();
             const controlCharacteristic = museDevice.getServiceMock(0xfe8d).getCharacteristicMock('273e0001-4c4d-454d-96be-f03bac821358');
             controlCharacteristic.writeValue = jest.fn();
