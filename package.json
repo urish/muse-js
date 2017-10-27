@@ -25,7 +25,7 @@
     "typescript": "^2.3.3"
   },
   "dependencies": {
-    "@types/text-encoding": "^0.0.30",
+    "@types/text-encoding": "^0.0.32",
     "@types/web-bluetooth": "^0.0.2",
     "rxjs": "^5.4.0"
   },
