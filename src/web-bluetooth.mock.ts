@@ -1,9 +1,8 @@
-export class EventTargetMock {
-    addEventListener() { }
-    removeEventListener() { }
-}
+import { EventTarget } from 'event-target-shim';
 
-export class CharacteristicMock extends EventTargetMock {
+export class CharacteristicMock extends EventTarget {
+    value: DataView;
+
     constructor(public service: PrimaryServiceMock) {
         super();
     }
@@ -48,7 +47,7 @@ export class GattMock {
 }
 
 
-export class DeviceMock extends EventTargetMock {
+export class DeviceMock extends EventTarget {
     gatt: GattMock;
     serviceMocks: { [service: string]: PrimaryServiceMock } = {};
 

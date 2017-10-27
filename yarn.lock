@@ -736,6 +736,10 @@ etag@~1.8.0:
   version "1.8.0"
   resolved "https://registry.yarnpkg.com/etag/-/etag-1.8.0.tgz#6f631aef336d6c46362b51764044ce216be3c051"
 
+event-target-shim@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/event-target-shim/-/event-target-shim-3.0.0.tgz#d2faa31db7d97188463b2cbde5e09601acae4672"
+
 exec-sh@^0.2.0:
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/exec-sh/-/exec-sh-0.2.0.tgz#14f75de3f20d286ef933099b2ce50a90359cef10"
