@@ -122,7 +122,7 @@ export class MuseClient {
     }
 
     async start() {
-        // Subscribe to egg characteristics
+        // Subscribe to EEG characteristics
         await this.pause();
         // Select preset number 20
         await this.controlChar.writeValue(encodeCommand('p20'));

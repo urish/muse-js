@@ -79,7 +79,7 @@ describe('MuseClient', () => {
         });
     });
 
-    describe('eggReadings', () => {
+    describe('eegReadings', () => {
         it('should emit a value for `eegReadings` observable whenever new EEG data is received', async () => {
             const service = museDevice.getServiceMock(0xfe8d);
             const eeg3Char = service.getCharacteristicMock('273e0006-4c4d-454d-96be-f03bac821358');
