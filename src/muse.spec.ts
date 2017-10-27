@@ -83,7 +83,6 @@ describe('MuseClient', () => {
         it('should emit a value for `eegReadings` observable whenever new EEG data is received', async () => {
             const service = museDevice.getServiceMock(0xfe8d);
             const eeg3Char = service.getCharacteristicMock('273e0006-4c4d-454d-96be-f03bac821358');
-            eeg3Char.startNotifications = jest.fn();
 
             const client = new MuseClient();
             await client.connect();
@@ -94,13 +93,104 @@ describe('MuseClient', () => {
             });
 
             eeg3Char.value = new DataView(new Uint8Array([0, 1, 40, 3, 128, 40, 3, 128, 40, 3, 128, 40, 3, 128, 40, 3, 128, 40, 3, 128]).buffer);
+            const beforeDispatchTime = new Date().getTime();
             eeg3Char.dispatchEvent(new CustomEvent('characteristicvaluechanged'));
+            const afterDispatchTime = new Date().getTime();
 
             expect(lastReading).toEqual({
-                timestamp: 1,
+                index: 1,
+                timestamp: expect.any(Number),
                 electrode: 3,
                 samples: [-687.5, -562.5, -687.5, -562.5, -687.5, -562.5, -687.5, -562.5, -687.5, -562.5, -687.5, -562.5,]
             });
+
+            // Timestamp should be about (1000/256.0*12) miliseconds behind the event dispatch time
+            expect(lastReading.timestamp).toBeGreaterThanOrEqual(beforeDispatchTime - (1000 / 256.0 * 12));
+            expect(lastReading.timestamp).toBeLessThanOrEqual(afterDispatchTime - (1000 / 256.0 * 12));
+        });
+
+        it('should report the same timestamp for eeg events with the same sequence', async () => {
+            const service = museDevice.getServiceMock(0xfe8d);
+            const eeg1Char = service.getCharacteristicMock('273e0004-4c4d-454d-96be-f03bac821358');
+            const eeg3Char = service.getCharacteristicMock('273e0006-4c4d-454d-96be-f03bac821358');
+
+            const client = new MuseClient();
+            await client.connect();
+
+            let readings: EEGReading[] = [];
+            client.eegReadings.subscribe(reading => {
+                readings.push(reading);
+            });
+
+            eeg1Char.value = new DataView(new Uint8Array([0, 15]).buffer);
+            eeg1Char.dispatchEvent(new CustomEvent('characteristicvaluechanged'));
+            eeg3Char.value = new DataView(new Uint8Array([0, 15]).buffer);
+            eeg3Char.dispatchEvent(new CustomEvent('characteristicvaluechanged'));
+
+            expect(readings.length).toBe(2);
+            expect(readings[0].electrode).toBe(1);
+            expect(readings[1].electrode).toBe(3);
+            expect(readings[0].timestamp).toEqual(readings[1].timestamp);
+        });
+
+        it('should bump the timestamp for subsequent EEG events', async () => {
+            const service = museDevice.getServiceMock(0xfe8d);
+            const eeg1Char = service.getCharacteristicMock('273e0004-4c4d-454d-96be-f03bac821358');
+
+            const client = new MuseClient();
+            await client.connect();
+
+            let readings: EEGReading[] = [];
+            client.eegReadings.subscribe(reading => {
+                readings.push(reading);
+            });
+
+            eeg1Char.value = new DataView(new Uint8Array([0, 15]).buffer);
+            eeg1Char.dispatchEvent(new CustomEvent('characteristicvaluechanged'));
+            eeg1Char.value = new DataView(new Uint8Array([0, 16]).buffer);
+            eeg1Char.dispatchEvent(new CustomEvent('characteristicvaluechanged'));
+
+            expect(readings[1].timestamp - readings[0].timestamp).toEqual(1000 / (256.0 / 12.0));
+        });
+
+        it('should correctly handle out-of-order EEG events', async () => {
+            const service = museDevice.getServiceMock(0xfe8d);
+            const eeg1Char = service.getCharacteristicMock('273e0004-4c4d-454d-96be-f03bac821358');
+
+            const client = new MuseClient();
+            await client.connect();
+
+            let readings: EEGReading[] = [];
+            client.eegReadings.subscribe(reading => {
+                readings.push(reading);
+            });
+
+            eeg1Char.value = new DataView(new Uint8Array([0, 20]).buffer);
+            eeg1Char.dispatchEvent(new CustomEvent('characteristicvaluechanged'));
+            eeg1Char.value = new DataView(new Uint8Array([0, 16]).buffer);
+            eeg1Char.dispatchEvent(new CustomEvent('characteristicvaluechanged'));
+
+            expect(readings[1].timestamp - readings[0].timestamp).toEqual(-4 * 1000 / (256.0 / 12.0));
+        });
+
+        it('should handle timestamp wraparound', async () => {
+            const service = museDevice.getServiceMock(0xfe8d);
+            const eeg1Char = service.getCharacteristicMock('273e0004-4c4d-454d-96be-f03bac821358');
+
+            const client = new MuseClient();
+            await client.connect();
+
+            let readings: EEGReading[] = [];
+            client.eegReadings.subscribe(reading => {
+                readings.push(reading);
+            });
+
+            eeg1Char.value = new DataView(new Uint8Array([0xff, 0xff]).buffer);
+            eeg1Char.dispatchEvent(new CustomEvent('characteristicvaluechanged'));
+            eeg1Char.value = new DataView(new Uint8Array([0, 0]).buffer);
+            eeg1Char.dispatchEvent(new CustomEvent('characteristicvaluechanged'));
+
+            expect(readings[1].timestamp - readings[0].timestamp).toEqual(1000 / (256.0 / 12.0));
         });
     });
 });

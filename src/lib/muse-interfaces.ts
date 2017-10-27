@@ -1,6 +1,7 @@
 export interface EEGReading {
+    index: number;
     electrode: number; // 0 to 4 
-    timestamp: number;
+    timestamp: number; // milliseconds since epoch   
     samples: number[]; // 12 samples each time
 }
 

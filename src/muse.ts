@@ -26,6 +26,7 @@ const EEG_CHARACTERISTICS = [
     '273e0006-4c4d-454d-96be-f03bac821358',
     '273e0007-4c4d-454d-96be-f03bac821358'
 ];
+export const EEG_FREQUENCY = 256;
 
 // These names match the characteristics defined in EEG_CHARACTERISTICS above
 export const channelNames = [
@@ -50,6 +51,9 @@ export class MuseClient {
     public gyroscopeData: Observable<GyroscopeData>;
     public accelerometerData: Observable<AccelerometerData>;
     public eegReadings: Observable<EEGReading>;
+
+    private lastIndex: number | null = null;
+    private lastTimestamp: number | null = null;
 
     async connect(gatt?: BluetoothRemoteGATTServer) {
         if (gatt) {
@@ -94,14 +98,16 @@ export class MuseClient {
         this.eegCharacteristics = [];
         const eegObservables = [];
         const channelCount = this.enableAux ? EEG_CHARACTERISTICS.length : 4;
-        for (let index = 0; index < channelCount; index++) {
-            let characteristicId = EEG_CHARACTERISTICS[index];
+        for (let channelIndex = 0; channelIndex < channelCount; channelIndex++) {
+            let characteristicId = EEG_CHARACTERISTICS[channelIndex];
             const eegChar = await service.getCharacteristic(characteristicId);
             eegObservables.push(
                 (await observableCharacteristic(eegChar)).map(data => {
+                    const eventIndex = data.getUint16(0);
                     return {
-                        electrode: index,
-                        timestamp: data.getUint16(0),
+                        index: eventIndex,
+                        electrode: channelIndex,
+                        timestamp: this.getTimestamp(eventIndex),
                         samples: decodeEEGSamples(new Uint8Array(data.buffer).subarray(2))
                     };
                 }));
@@ -140,8 +146,35 @@ export class MuseClient {
 
     disconnect() {
         if (this.gatt) {
+            this.lastIndex = null;
+            this.lastTimestamp = null;
             this.gatt.disconnect();
             this.connectionStatus.next(false);
+        }
+    }
+
+    private getTimestamp(eventIndex: number) {
+        const SAMPLES_PER_READING = 12;
+        const READING_DELTA = 1000 * (1.0 / EEG_FREQUENCY) * SAMPLES_PER_READING;
+        if (this.lastIndex === null || this.lastTimestamp === null) {
+            this.lastIndex = eventIndex;
+            this.lastTimestamp = new Date().getTime() - READING_DELTA;
+        }
+
+        // Handle wrap around
+        while ((this.lastIndex - eventIndex) > 0x1000) {
+            eventIndex += 0x10000;
+        }
+
+        if (eventIndex === this.lastIndex) {
+            return this.lastTimestamp;
+        }
+        if (eventIndex > this.lastIndex) {
+            this.lastTimestamp += READING_DELTA * (eventIndex - this.lastIndex);
+            this.lastIndex = eventIndex;
+            return this.lastTimestamp;
+        } else {
+            return this.lastTimestamp - READING_DELTA * (this.lastIndex - eventIndex);
         }
     }
 }
