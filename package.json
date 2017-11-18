@@ -23,7 +23,8 @@
     "fuse-box": "^2.0.0",
     "jest": "^20.0.4",
     "text-encoding": "^0.6.4",
-    "typescript": "^2.3.3"
+    "typescript": "^2.3.3",
+    "web-bluetooth-mock": "^1.0.0"
   },
   "dependencies": {
     "@types/text-encoding": "^0.0.32",

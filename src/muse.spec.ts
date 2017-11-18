@@ -1,6 +1,6 @@
 import { EEGReading } from './../dist/lib/muse-interfaces.d';
 import { MuseClient } from './muse';
-import { WebBluetoothMock, DeviceMock } from './web-bluetooth.mock';
+import { WebBluetoothMock, DeviceMock } from 'web-bluetooth-mock';
 import { TextEncoder, TextDecoder } from 'text-encoding';
 
 declare var global;
