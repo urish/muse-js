@@ -2756,9 +2756,9 @@ watch@~0.10.0:
   version "0.10.0"
   resolved "https://registry.yarnpkg.com/watch/-/watch-0.10.0.tgz#77798b2da0f9910d595f1ace5b0c2258521f21dc"
 
-web-bluetooth-mock@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/web-bluetooth-mock/-/web-bluetooth-mock-1.0.0.tgz#b8fb57e98c46b18a31a7ec8c4bbb7dbe640ee0e4"
+web-bluetooth-mock@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/web-bluetooth-mock/-/web-bluetooth-mock-1.0.2.tgz#60a3a9ab60dd565f96a858fbf07c15597bcb0cd1"
   dependencies:
     "@types/web-bluetooth" "^0.0.3"
     event-target-shim "^3.0.0"
