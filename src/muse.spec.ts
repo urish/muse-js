@@ -7,6 +7,10 @@ declare var global;
 
 let museDevice: DeviceMock;
 
+function charCodes(s) {
+    return s.split('').map(c => c.charCodeAt(0));
+}
+
 describe('MuseClient', () => {
     beforeEach(() => {
         museDevice = new DeviceMock('Muse-Test', [0xfe8d]);
@@ -63,10 +67,6 @@ describe('MuseClient', () => {
             controlCharacteristic.writeValue = jest.fn();
             await client.connect();
             await client.start();
-
-            function charCodes(s) {
-                return s.split('').map(c => c.charCodeAt(0));
-            }
 
             expect(controlCharacteristic.writeValue)
                 .toHaveBeenCalledWith(new Uint8Array([2, ...charCodes('h'), 10]));
@@ -191,6 +191,79 @@ describe('MuseClient', () => {
             eeg1Char.dispatchEvent(new CustomEvent('characteristicvaluechanged'));
 
             expect(readings[1].timestamp - readings[0].timestamp).toEqual(1000 / (256.0 / 12.0));
+        });
+    });
+
+    describe('deviceInfo', () => {
+        it('should return information about the headset', async () => {
+            const service = museDevice.getServiceMock(0xfe8d);
+            const controlCharacteristic = service.getCharacteristicMock('273e0001-4c4d-454d-96be-f03bac821358');
+            jest.spyOn(controlCharacteristic, 'writeValue');
+
+            const client = new MuseClient();
+            await client.connect();
+            const deviceInfoPromise = client.deviceInfo();
+
+            expect(controlCharacteristic.writeValue)
+                .toHaveBeenCalledWith(new Uint8Array([3, ...charCodes('v1'), 10]));
+
+            const deviceResponse = [
+                [16, 123, 34, 97, 112, 34, 58, 34, 104, 101, 97, 100, 115, 101, 116, 34, 44, 50, 51, 49],
+                [12, 34, 115, 112, 34, 58, 34, 82, 101, 118, 69, 34, 44, 101, 116, 34, 44, 50, 51, 49],
+                [16, 34, 116, 112, 34, 58, 34, 99, 111, 110, 115, 117, 109, 101, 114, 34, 44, 50, 51, 49],
+                [11, 34, 104, 119, 34, 58, 34, 51, 46, 49, 34, 44, 109, 101, 114, 34, 44, 50, 51, 49],
+                [8, 34, 98, 110, 34, 58, 50, 55, 44, 49, 34, 44, 109, 101, 114, 34, 44, 50, 51, 49],
+                [14, 34, 102, 119, 34, 58, 34, 49, 46, 50, 46, 49, 51, 34, 44, 34, 44, 50, 51, 49],
+                [13, 34, 98, 108, 34, 58, 34, 49, 46, 50, 46, 51, 34, 44, 44, 34, 44, 50, 51, 49],
+                [7, 34, 112, 118, 34, 58, 49, 44, 46, 50, 46, 51, 34, 44, 44, 34, 44, 50, 51, 49],
+                [7, 34, 114, 99, 34, 58, 48, 125, 46, 50, 46, 51, 34, 44, 44, 34, 44, 50, 51, 49],
+            ];
+
+            deviceResponse.forEach(data => {
+                controlCharacteristic.value = new DataView(new Uint8Array(data).buffer);
+                controlCharacteristic.dispatchEvent(new CustomEvent('characteristicvaluechanged'));
+            });
+
+            const deviceInfo = await deviceInfoPromise;
+            expect(deviceInfo).toEqual({
+                ap: 'headset',
+                bl: '1.2.3',
+                bn: 27,
+                fw: '1.2.13',
+                hw: '3.1',
+                pv: 1,
+                rc: 0,
+                sp: 'RevE',
+                tp: 'consumer',
+            });
+        });
+    });
+
+    describe('disconnect', () => {
+        it('should disconnect from gatt', async () => {
+            const client = new MuseClient();
+            await client.connect();
+
+            jest.spyOn(museDevice.gatt, 'disconnect');
+            client.disconnect();
+            expect(museDevice.gatt.disconnect).toHaveBeenCalled();
+        });
+
+        it('should emit a disconnect event', async () => {
+            const client = new MuseClient();
+            let lastStatus = null;
+            client.connectionStatus.subscribe(value => {
+                lastStatus = value;
+            });
+            await client.connect();
+            expect(lastStatus).toBe(true);
+            client.disconnect();
+            expect(lastStatus).toBe(false);
+        });
+
+        it('should silently return if connect() was not valled', async () => {
+            const client = new MuseClient();
+            client.disconnect();
         });
     });
 });
