@@ -1,14 +1,14 @@
+import { TextDecoder, TextEncoder } from 'text-encoding';
+import { DeviceMock, WebBluetoothMock } from 'web-bluetooth-mock';
 import { EEGReading } from './../dist/lib/muse-interfaces.d';
 import { MuseClient } from './muse';
-import { WebBluetoothMock, DeviceMock } from 'web-bluetooth-mock';
-import { TextEncoder, TextDecoder } from 'text-encoding';
 
 declare var global;
 
 let museDevice: DeviceMock;
 
 function charCodes(s) {
-    return s.split('').map(c => c.charCodeAt(0));
+    return s.split('').map((c) => c.charCodeAt(0));
 }
 
 describe('MuseClient', () => {
@@ -63,8 +63,10 @@ describe('MuseClient', () => {
     describe('start', async () => {
         it('should send `h`, `s`, `p20` and `d` commands to the EEG headset', async () => {
             const client = new MuseClient();
-            const controlCharacteristic = museDevice.getServiceMock(0xfe8d).getCharacteristicMock('273e0001-4c4d-454d-96be-f03bac821358');
+            const controlCharacteristic = museDevice.getServiceMock(0xfe8d)
+                .getCharacteristicMock('273e0001-4c4d-454d-96be-f03bac821358');
             controlCharacteristic.writeValue = jest.fn();
+
             await client.connect();
             await client.start();
 
@@ -88,20 +90,24 @@ describe('MuseClient', () => {
             await client.connect();
 
             let lastReading: EEGReading;
-            client.eegReadings.subscribe(reading => {
+            client.eegReadings.subscribe((reading) => {
                 lastReading = reading;
             });
 
-            eeg3Char.value = new DataView(new Uint8Array([0, 1, 40, 3, 128, 40, 3, 128, 40, 3, 128, 40, 3, 128, 40, 3, 128, 40, 3, 128]).buffer);
+            eeg3Char.value = new DataView(
+                new Uint8Array([0, 1, 40, 3, 128, 40, 3, 128, 40, 3, 128, 40, 3, 128, 40, 3, 128, 40, 3, 128]).buffer);
             const beforeDispatchTime = new Date().getTime();
             eeg3Char.dispatchEvent(new CustomEvent('characteristicvaluechanged'));
             const afterDispatchTime = new Date().getTime();
 
             expect(lastReading).toEqual({
-                index: 1,
-                timestamp: expect.any(Number),
                 electrode: 3,
-                samples: [-687.5, -562.5, -687.5, -562.5, -687.5, -562.5, -687.5, -562.5, -687.5, -562.5, -687.5, -562.5,]
+                index: 1,
+                samples: [
+                    -687.5, -562.5, -687.5, -562.5, -687.5, -562.5,
+                    -687.5, -562.5, -687.5, -562.5, -687.5, -562.5,
+                ],
+                timestamp: expect.any(Number),
             });
 
             // Timestamp should be about (1000/256.0*12) miliseconds behind the event dispatch time
@@ -117,8 +123,8 @@ describe('MuseClient', () => {
             const client = new MuseClient();
             await client.connect();
 
-            let readings: EEGReading[] = [];
-            client.eegReadings.subscribe(reading => {
+            const readings: EEGReading[] = [];
+            client.eegReadings.subscribe((reading) => {
                 readings.push(reading);
             });
 
@@ -140,8 +146,8 @@ describe('MuseClient', () => {
             const client = new MuseClient();
             await client.connect();
 
-            let readings: EEGReading[] = [];
-            client.eegReadings.subscribe(reading => {
+            const readings: EEGReading[] = [];
+            client.eegReadings.subscribe((reading) => {
                 readings.push(reading);
             });
 
@@ -160,8 +166,8 @@ describe('MuseClient', () => {
             const client = new MuseClient();
             await client.connect();
 
-            let readings: EEGReading[] = [];
-            client.eegReadings.subscribe(reading => {
+            const readings: EEGReading[] = [];
+            client.eegReadings.subscribe((reading) => {
                 readings.push(reading);
             });
 
@@ -180,8 +186,8 @@ describe('MuseClient', () => {
             const client = new MuseClient();
             await client.connect();
 
-            let readings: EEGReading[] = [];
-            client.eegReadings.subscribe(reading => {
+            const readings: EEGReading[] = [];
+            client.eegReadings.subscribe((reading) => {
                 readings.push(reading);
             });
 
@@ -219,7 +225,7 @@ describe('MuseClient', () => {
                 [7, 34, 114, 99, 34, 58, 48, 125, 46, 50, 46, 51, 34, 44, 44, 34, 44, 50, 51, 49],
             ];
 
-            deviceResponse.forEach(data => {
+            deviceResponse.forEach((data) => {
                 controlCharacteristic.value = new DataView(new Uint8Array(data).buffer);
                 controlCharacteristic.dispatchEvent(new CustomEvent('characteristicvaluechanged'));
             });
@@ -252,7 +258,7 @@ describe('MuseClient', () => {
         it('should emit a disconnect event', async () => {
             const client = new MuseClient();
             let lastStatus = null;
-            client.connectionStatus.subscribe(value => {
+            client.connectionStatus.subscribe((value) => {
                 lastStatus = value;
             });
             await client.connect();

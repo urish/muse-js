@@ -11,7 +11,8 @@
     "build": "tsc",
     "prepublish": "npm run build",
     "start": "node demo/fuse",
-    "test": "jest",
+    "lint": "tslint src/**/*.ts demo/src/**/*.ts",
+    "test": "npm run lint && jest",
     "test:watch": "jest --watch"
   },
   "files": [
@@ -23,6 +24,7 @@
     "fuse-box": "^2.0.0",
     "jest": "^20.0.4",
     "text-encoding": "^0.6.4",
+    "tslint": "^5.8.0",
     "typescript": "^2.3.3",
     "web-bluetooth-mock": "^1.0.2"
   },

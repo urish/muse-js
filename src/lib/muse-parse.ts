@@ -1,15 +1,15 @@
 import { Observable } from 'rxjs/Observable';
 
 import 'rxjs/add/operator/concatMap';
-import 'rxjs/add/operator/scan';
 import 'rxjs/add/operator/filter';
 import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/scan';
 
-import { EEGReading, TelemetryData, AccelerometerData, GyroscopeData } from './muse-interfaces';
+import { AccelerometerData, EEGReading, GyroscopeData, TelemetryData } from './muse-interfaces';
 
 export function parseControl(controlData: Observable<string>) {
     return controlData
-        .concatMap(data => data.split(''))
+        .concatMap((data) => data.split(''))
         .scan((acc, value) => {
             if (acc.indexOf('}') >= 0) {
                 return value;
@@ -17,12 +17,13 @@ export function parseControl(controlData: Observable<string>) {
                 return acc + value;
             }
         }, '')
-        .filter(value => value.indexOf('}') >= 0)
-        .map(value => JSON.parse(value));
+        .filter((value) => value.indexOf('}') >= 0)
+        .map((value) => JSON.parse(value));
 }
 
 export function decodeUnsigned12BitData(samples: Uint8Array) {
     const samples12Bit = [];
+    // tslint:disable:no-bitwise
     for (let i = 0; i < samples.length; i++) {
         if (i % 3 === 0) {
             samples12Bit.push(samples[i] << 4 | samples[i + 1] >> 4);
@@ -31,15 +32,17 @@ export function decodeUnsigned12BitData(samples: Uint8Array) {
             i++;
         }
     }
+    // tslint:enable:no-bitwise
     return samples12Bit;
 }
 
 export function decodeEEGSamples(samples: Uint8Array) {
     return decodeUnsigned12BitData(samples)
-        .map(n => 0.48828125 * (n - 0x800));
+        .map((n) => 0.48828125 * (n - 0x800));
 }
 
 export function parseTelemetry(data: DataView): TelemetryData {
+    // tslint:disable:object-literal-sort-keys
     return {
         sequenceId: data.getUint16(0),
         batteryLevel: data.getUint16(2) / 512.,
@@ -47,6 +50,7 @@ export function parseTelemetry(data: DataView): TelemetryData {
         // Next 2 bytes are probably ADC millivolt level, not sure
         temperature: data.getUint16(8),
     };
+    // tslint:enable:object-literal-sort-keys
 }
 
 export function parseAccelerometer(data: DataView): AccelerometerData {
@@ -57,10 +61,12 @@ export function parseAccelerometer(data: DataView): AccelerometerData {
             z: data.getInt16(startIndex + 4),
         };
     }
+    // tslint:disable:object-literal-sort-keys
     return {
         sequenceId: data.getUint16(0),
-        samples: [sample(2), sample(8), sample(14)]
+        samples: [sample(2), sample(8), sample(14)],
     };
+    // tslint:enable:object-literal-sort-keys
 }
 
 export function parseGyroscope(data: DataView): GyroscopeData {
