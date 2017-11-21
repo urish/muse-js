@@ -1,11 +1,11 @@
 {
   "name": "muse-js",
-  "version": "0.7.0",
+  "version": "1.0.0",
   "description": "Muse 2016 EEG Headset JavaScript Library",
   "main": "dist/muse.js",
   "typings": "dist/muse.d.ts",
   "repository": "https://github.com/urish/muse-js",
-  "author": "Uri Shaked <uri@salsa4fun.co.il>",
+  "author": "Uri Shaked <uri@codemagic.co.il>",
   "license": "MIT",
   "scripts": {
     "build": "tsc",
