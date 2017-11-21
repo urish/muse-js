@@ -1,12 +1,13 @@
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Observable } from 'rxjs/Observable';
 
-import 'rxjs/add/observable/merge';
-import 'rxjs/add/operator/filter';
-import 'rxjs/add/operator/first';
-import 'rxjs/add/operator/share';
-import 'rxjs/add/operator/take';
-import 'rxjs/add/operator/toPromise';
+import { fromEvent } from 'rxjs/observable/fromEvent';
+import { merge } from 'rxjs/observable/merge';
+import { filter } from 'rxjs/operators/filter';
+import { first } from 'rxjs/operators/first';
+import { map } from 'rxjs/operators/map';
+import { share } from 'rxjs/operators/share';
+import { take } from 'rxjs/operators/take';
 
 import {
     AccelerometerData, EEGReading, GyroscopeData, MuseControlResponse,
@@ -71,32 +72,36 @@ export class MuseClient {
         this.deviceName = this.gatt.device.name || null;
 
         const service = await this.gatt.getPrimaryService(MUSE_SERVICE);
-        Observable.fromEvent<void>(this.gatt.device, 'gattserverdisconnected').first().subscribe(() => {
+        fromEvent<void>(this.gatt.device, 'gattserverdisconnected').pipe(first()).subscribe(() => {
             this.gatt = null;
             this.connectionStatus.next(false);
         });
 
         // Control
         this.controlChar = await service.getCharacteristic(CONTROL_CHARACTERISTIC);
-        this.rawControlData = (await observableCharacteristic(this.controlChar))
-            .map((data) => decodeResponse(new Uint8Array(data.buffer)))
-            .share();
+        this.rawControlData = (await observableCharacteristic(this.controlChar)).pipe(
+            map((data) => decodeResponse(new Uint8Array(data.buffer))),
+            share(),
+        );
         this.controlResponses = parseControl(this.rawControlData);
 
         // Battery
         const telemetryCharacteristic = await service.getCharacteristic(TELEMETRY_CHARACTERISTIC);
-        this.telemetryData = (await observableCharacteristic(telemetryCharacteristic))
-            .map(parseTelemetry);
+        this.telemetryData = (await observableCharacteristic(telemetryCharacteristic)).pipe(
+            map(parseTelemetry),
+        );
 
         // Gyroscope
         const gyroscopeCharacteristic = await service.getCharacteristic(GYROSCOPE_CHARACTERISTIC);
-        this.gyroscopeData = (await observableCharacteristic(gyroscopeCharacteristic))
-            .map(parseGyroscope);
+        this.gyroscopeData = (await observableCharacteristic(gyroscopeCharacteristic)).pipe(
+            map(parseGyroscope),
+        );
 
         // Accelerometer
         const accelerometerCharacteristic = await service.getCharacteristic(ACCELEROMETER_CHARACTERISTIC);
-        this.accelerometerData = (await observableCharacteristic(accelerometerCharacteristic))
-            .map(parseAccelerometer);
+        this.accelerometerData = (await observableCharacteristic(accelerometerCharacteristic)).pipe(
+            map(parseAccelerometer),
+        );
 
         // EEG
         this.eegCharacteristics = [];
@@ -106,18 +111,21 @@ export class MuseClient {
             const characteristicId = EEG_CHARACTERISTICS[channelIndex];
             const eegChar = await service.getCharacteristic(characteristicId);
             eegObservables.push(
-                (await observableCharacteristic(eegChar)).map((data) => {
-                    const eventIndex = data.getUint16(0);
-                    return {
-                        electrode: channelIndex,
-                        index: eventIndex,
-                        samples: decodeEEGSamples(new Uint8Array(data.buffer).subarray(2)),
-                        timestamp: this.getTimestamp(eventIndex),
-                    };
-                }));
+                (await observableCharacteristic(eegChar)).pipe(
+                    map((data) => {
+                        const eventIndex = data.getUint16(0);
+                        return {
+                            electrode: channelIndex,
+                            index: eventIndex,
+                            samples: decodeEEGSamples(new Uint8Array(data.buffer).subarray(2)),
+                            timestamp: this.getTimestamp(eventIndex),
+                        };
+                    }),
+                ),
+            );
             this.eegCharacteristics.push(eegChar);
         }
-        this.eegReadings = Observable.merge(...eegObservables);
+        this.eegReadings = merge(...eegObservables);
         this.connectionStatus.next(true);
     }
 
@@ -143,7 +151,10 @@ export class MuseClient {
     }
 
     async deviceInfo() {
-        const resultListener = this.controlResponses.filter((r) => !!r.fw).take(1).toPromise();
+        const resultListener = this.controlResponses.pipe(
+            filter((r) => !!r.fw),
+            take(1),
+        ).toPromise();
         await this.sendCommand('v1');
         return resultListener as Promise<MuseDeviceInfo>;
     }

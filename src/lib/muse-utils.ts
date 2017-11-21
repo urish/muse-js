@@ -1,8 +1,8 @@
 import { Observable } from 'rxjs/Observable';
 
-import 'rxjs/add/observable/fromEvent';
-import 'rxjs/add/operator/map';
-import 'rxjs/add/operator/takeUntil';
+import { fromEvent } from 'rxjs/observable/fromEvent';
+import { map } from 'rxjs/operators/map';
+import { takeUntil } from 'rxjs/operators/takeUntil';
 
 export function decodeResponse(bytes: Uint8Array) {
     return new TextDecoder().decode(bytes.subarray(1, 1 + bytes[0]));
@@ -16,8 +16,9 @@ export function encodeCommand(cmd: string) {
 
 export async function observableCharacteristic(characteristic: BluetoothRemoteGATTCharacteristic) {
     await characteristic.startNotifications();
-    const disconnected = Observable.fromEvent(characteristic.service!.device, 'gattserverdisconnected');
-    return Observable.fromEvent(characteristic, 'characteristicvaluechanged')
-        .takeUntil(disconnected)
-        .map((event: Event) => (event.target as BluetoothRemoteGATTCharacteristic).value as DataView);
+    const disconnected = fromEvent(characteristic.service!.device, 'gattserverdisconnected');
+    return fromEvent(characteristic, 'characteristicvaluechanged').pipe(
+        takeUntil(disconnected),
+        map((event: Event) => (event.target as BluetoothRemoteGATTCharacteristic).value as DataView),
+    );
 }

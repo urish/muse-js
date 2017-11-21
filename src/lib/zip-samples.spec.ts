@@ -1,8 +1,7 @@
 import { Observable } from 'rxjs/Observable';
 
-import 'rxjs/add/observable/of';
-import 'rxjs/add/operator/toArray';
-import 'rxjs/add/operator/toPromise';
+import { of } from 'rxjs/observable/of';
+import { toArray } from 'rxjs/operators/toArray';
 
 import { zipSamples } from './zip-samples';
 
@@ -10,7 +9,7 @@ import { zipSamples } from './zip-samples';
 
 describe('zipSamples', () => {
     it('should zip all eeg channels into one array', async () => {
-        const input = Observable.of(
+        const input = of(
             {
                 electrode: 2, index: 100, timestamp: 1000,
                 samples: [2.01, 2.02, 2.03, 2.04, 2.05, 2.06, 2.07, 2.08, 2.09, 2.10, 2.11, 2.12],
@@ -53,7 +52,7 @@ describe('zipSamples', () => {
             },
         );
         const zipped = zipSamples(input);
-        const result = await zipped.toArray().toPromise();
+        const result = await zipped.pipe(toArray()).toPromise();
         expect(result).toEqual([
             { index: 100, timestamp: 1000.00000, data: [0.01, 1.01, 2.01, 3.01, 4.01] },
             { index: 100, timestamp: 1003.90625, data: [0.02, 1.02, 2.02, 3.02, 4.02] },
@@ -83,14 +82,14 @@ describe('zipSamples', () => {
     });
 
     it('should indicate missing samples with NaN', async () => {
-        const input = Observable.of(
+        const input = of(
             { index: 50, timestamp: 5000, electrode: 2, samples: [2.01, 2.02, 2.03, 2.04] },
             { index: 50, timestamp: 5000, electrode: 4, samples: [4.01, 4.02, 4.03, 4.04] },
             { index: 50, timestamp: 5000, electrode: 0, samples: [0.01, 0.02, 0.03, 0.04] },
             { index: 50, timestamp: 5000, electrode: 3, samples: [3.01, 3.02, 3.03, 3.04] },
         );
         const zipped = zipSamples(input);
-        const result = await zipped.toArray().toPromise();
+        const result = await zipped.pipe(toArray()).toPromise();
         expect(result).toEqual([
             { index: 50, timestamp: 5000.00000, data: [0.01, NaN, 2.01, 3.01, 4.01] },
             { index: 50, timestamp: 5003.90625, data: [0.02, NaN, 2.02, 3.02, 4.02] },

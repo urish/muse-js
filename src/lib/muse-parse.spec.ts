@@ -1,13 +1,11 @@
-import { Observable } from 'rxjs/Observable';
 import { decodeUnsigned12BitData, parseAccelerometer, parseControl, parseTelemetry } from './muse-parse';
 
-import 'rxjs/add/observable/from';
-import 'rxjs/add/operator/toArray';
-import 'rxjs/add/operator/toPromise';
+import { from } from 'rxjs/observable/from';
+import { toArray } from 'rxjs/operators/toArray';
 
 describe('parseControl', () => {
     it('should correctly parse JSON responses into objects', async () => {
-        const input = Observable.from([
+        const input = from([
             '{"ap":"headset",',
             '"sp":"RevE",',
             '"tp":"consumer",',
@@ -32,7 +30,7 @@ describe('parseControl', () => {
             '"rc":0}{"r',
             'c":0}',
         ]);
-        const results = await parseControl(input).toArray().toPromise();
+        const results = await parseControl(input).pipe(toArray()).toPromise();
         expect(results).toEqual([
             {
                 ap: 'headset', bl: '1.2.3', bn: 27, fw: '1.2.13', hw: '3.1',
