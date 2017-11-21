@@ -19,19 +19,19 @@
     "dist"
   ],
   "devDependencies": {
-    "@types/jest": "^20.0.0",
+    "@types/jest": "^21.1.6",
     "event-target-shim": "^3.0.0",
     "fuse-box": "^2.0.0",
-    "jest": "^20.0.4",
+    "jest": "^21.2.1",
     "text-encoding": "^0.6.4",
     "tslint": "^5.8.0",
-    "typescript": "^2.3.3",
+    "typescript": "^2.4.2",
     "web-bluetooth-mock": "^1.0.2"
   },
   "dependencies": {
     "@types/text-encoding": "^0.0.32",
     "@types/web-bluetooth": "^0.0.2",
-    "rxjs": "^5.4.0"
+    "rxjs": "^5.5.0"
   },
   "jest": {
     "moduleFileExtensions": [
