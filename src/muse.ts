@@ -134,10 +134,9 @@ export class MuseClient {
     }
 
     async start() {
-        // Subscribe to EEG characteristics
         await this.pause();
-        // Select preset number 20
-        await this.controlChar.writeValue(encodeCommand('p20'));
+        const preset = this.enableAux ? 'p20' : 'p21';
+        await this.controlChar.writeValue(encodeCommand(preset));
         await this.controlChar.writeValue(encodeCommand('s'));
         await this.resume();
     }

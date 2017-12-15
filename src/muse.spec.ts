@@ -61,7 +61,7 @@ describe('MuseClient', () => {
     });
 
     describe('start', async () => {
-        it('should send `h`, `s`, `p20` and `d` commands to the EEG headset', async () => {
+        it('should send `h`, `s`, `p21` and `d` commands to the EEG headset', async () => {
             const client = new MuseClient();
             const controlCharacteristic = museDevice.getServiceMock(0xfe8d)
                 .getCharacteristicMock('273e0001-4c4d-454d-96be-f03bac821358');
@@ -75,9 +75,25 @@ describe('MuseClient', () => {
             expect(controlCharacteristic.writeValue)
                 .toHaveBeenCalledWith(new Uint8Array([2, ...charCodes('s'), 10]));
             expect(controlCharacteristic.writeValue)
-                .toHaveBeenCalledWith(new Uint8Array([4, ...charCodes('p20'), 10]));
+                .toHaveBeenCalledWith(new Uint8Array([4, ...charCodes('p21'), 10]));
             expect(controlCharacteristic.writeValue)
                 .toHaveBeenCalledWith(new Uint8Array([2, ...charCodes('d'), 10]));
+        });
+
+        it('choose preset number 20 instead of 21 if aux is enabled', async () => {
+            const client = new MuseClient();
+            const controlCharacteristic = museDevice.getServiceMock(0xfe8d)
+                .getCharacteristicMock('273e0001-4c4d-454d-96be-f03bac821358');
+            controlCharacteristic.writeValue = jest.fn();
+
+            client.enableAux = true;
+            await client.connect();
+            await client.start();
+
+            expect(controlCharacteristic.writeValue)
+                .toHaveBeenCalledWith(new Uint8Array([4, ...charCodes('p20'), 10]));
+            expect(controlCharacteristic.writeValue)
+                .not.toHaveBeenCalledWith(new Uint8Array([4, ...charCodes('p21'), 10]));
         });
     });
 
