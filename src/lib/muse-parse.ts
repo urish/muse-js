@@ -54,12 +54,12 @@ export function parseTelemetry(data: DataView): TelemetryData {
     // tslint:enable:object-literal-sort-keys
 }
 
-export function parseAccelerometer(data: DataView): AccelerometerData {
+function parseImuReading(data: DataView, scale: number) {
     function sample(startIndex: number) {
         return {
-            x: data.getInt16(startIndex),
-            y: data.getInt16(startIndex + 2),
-            z: data.getInt16(startIndex + 4),
+            x: scale * data.getInt16(startIndex),
+            y: scale * data.getInt16(startIndex + 2),
+            z: scale * data.getInt16(startIndex + 4),
         };
     }
     // tslint:disable:object-literal-sort-keys
@@ -70,6 +70,10 @@ export function parseAccelerometer(data: DataView): AccelerometerData {
     // tslint:enable:object-literal-sort-keys
 }
 
+export function parseAccelerometer(data: DataView): AccelerometerData {
+    return parseImuReading(data, 0.0000610352);
+}
+
 export function parseGyroscope(data: DataView): GyroscopeData {
-    return parseAccelerometer(data);
+    return parseImuReading(data, 0.0074768);
 }

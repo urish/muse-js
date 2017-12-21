@@ -1,4 +1,6 @@
-import { decodeUnsigned12BitData, parseAccelerometer, parseControl, parseTelemetry } from './muse-parse';
+import {
+    decodeUnsigned12BitData, parseAccelerometer, parseControl, parseGyroscope, parseTelemetry,
+} from './muse-parse';
 
 import { from } from 'rxjs/observable/from';
 import { toArray } from 'rxjs/operators/toArray';
@@ -69,17 +71,33 @@ describe('parseTelemtry', () => {
 });
 
 describe('parseAccelerometer', () => {
-    it('should parse Muse accelerometer data correctly', () => {
+    it('should parse Muse accelerometer data and return (x,y,z) vectors in g units', () => {
         const input = new DataView(
-            new Uint8Array([82, 109, 17, 227, 13, 157, 60, 115, 18, 5, 13, 73, 60, 53, 17,
-                183, 13, 178, 60, 143]).buffer);
+            new Uint8Array([82, 109, 13, 178, 13, 157, 60, 115, 18, 5, 13, 73, 60, 53, 17,
+                183, 17, 227, 60, 143]).buffer);
         expect(parseAccelerometer(input)).toEqual({
             samples: [
-                { x: 4579, y: 3485, z: 15475 },
-                { x: 4613, y: 3401, z: 15413 },
-                { x: 4535, y: 3506, z: 15503 },
+                { x: 0.2139894112, y: 0.21270767200000001, z: 0.9445197200000001 },
+                { x: 0.2815553776, y: 0.20758071520000002, z: 0.9407355376000001 },
+                { x: 0.276794632, y: 0.27948018080000003, z: 0.9462287056 },
             ],
             sequenceId: 21101,
+        });
+    });
+});
+
+describe('parseGyroscope', () => {
+    it('should parse Muse gyroscope data and return (x,y,z) vectors in deg/second units', () => {
+        const input = new DataView(
+            new Uint8Array([1, 109, 5, 12, 0, 157, 0, 115, 5, 5, 0, 73, 0, 53, 5,
+                183, 0, 227, 0, 143]).buffer);
+        expect(parseGyroscope(input)).toEqual({
+            samples: [
+                { x: 9.660025599999999, y: 1.1738575999999998, z: 0.8598319999999999 },
+                { x: 9.607688, y: 0.5458064, z: 0.39627039999999997 },
+                { x: 10.9385584, y: 1.6972336, z: 1.0691823999999999 },
+            ],
+            sequenceId: 365,
         });
     });
 });
