@@ -1,6 +1,6 @@
 {
   "name": "muse-js",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Muse 2016 EEG Headset JavaScript Library",
   "main": "dist/muse.js",
   "typings": "dist/muse.d.ts",
