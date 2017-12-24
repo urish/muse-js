@@ -126,7 +126,7 @@ describe('MuseClient', () => {
                 timestamp: expect.any(Number),
             });
 
-            // Timestamp should be about (1000/256.0*12) miliseconds behind the event dispatch time
+            // Timestamp should be about (1000/256.0*12) milliseconds behind the event dispatch time
             expect(lastReading.timestamp).toBeGreaterThanOrEqual(beforeDispatchTime - (1000 / 256.0 * 12));
             expect(lastReading.timestamp).toBeLessThanOrEqual(afterDispatchTime - (1000 / 256.0 * 12));
         });
