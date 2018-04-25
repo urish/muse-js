@@ -19,17 +19,19 @@
   },
   "files": ["dist"],
   "devDependencies": {
-    "@types/jest": "^21.1.6",
+    "@types/jest": "^22.2.3",
     "event-target-shim": "^3.0.0",
     "fuse-box": "^2.0.0",
     "husky": "^0.14.3",
-    "jest": "^21.2.1",
+    "jest": "^22.4.3",
     "lint-staged": "^7.0.4",
     "prettier": "^1.12.1",
     "text-encoding": "^0.6.4",
+    "ts-jest": "^22.4.4",
     "tslint": "^5.8.0",
     "typescript": "^2.8.3",
-    "web-bluetooth-mock": "^1.0.2"
+    "web-bluetooth-mock": "^1.0.2",
+    "zen-observable": "^0.8.8"
   },
   "dependencies": {
     "@types/web-bluetooth": "^0.0.2",
@@ -38,7 +40,7 @@
   "jest": {
     "moduleFileExtensions": ["ts", "js"],
     "transform": {
-      "^.+\\.ts$": "<rootDir>/typescript-preprocessor.js"
+      "^.+\\.ts$": "ts-jest"
     },
     "testMatch": ["**/*.spec.ts"]
   },
