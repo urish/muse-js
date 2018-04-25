@@ -9,20 +9,23 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc",
+    "format": "prettier --write src/**.ts **/*.json",
+    "precommit": "lint-staged",
     "prepublish": "npm run build",
     "start": "node demo/fuse",
     "lint": "tslint src/**/*.ts demo/src/**/*.ts",
     "test": "npm run lint && jest",
     "test:watch": "jest --watch"
   },
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "devDependencies": {
     "@types/jest": "^21.1.6",
     "event-target-shim": "^3.0.0",
     "fuse-box": "^2.0.0",
+    "husky": "^0.14.3",
     "jest": "^21.2.1",
+    "lint-staged": "^7.0.4",
+    "prettier": "^1.12.1",
     "text-encoding": "^0.6.4",
     "tslint": "^5.8.0",
     "typescript": "^2.4.2",
@@ -34,15 +37,14 @@
     "rxjs": "^5.6.0-forward-compat.4"
   },
   "jest": {
-    "moduleFileExtensions": [
-      "ts",
-      "js"
-    ],
+    "moduleFileExtensions": ["ts", "js"],
     "transform": {
       "^.+\\.ts$": "<rootDir>/typescript-preprocessor.js"
     },
-    "testMatch": [
-      "**/*.spec.ts"
-    ]
+    "testMatch": ["**/*.spec.ts"]
+  },
+  "lint-staged": {
+    "*.{js,json}": ["prettier --write", "git add"],
+    "*.ts": ["prettier --write", "tslint --fix", "git add"]
   }
 }

@@ -63,26 +63,24 @@ describe('MuseClient', () => {
     describe('start', async () => {
         it('should send `h`, `s`, `p21` and `d` commands to the EEG headset', async () => {
             const client = new MuseClient();
-            const controlCharacteristic = museDevice.getServiceMock(0xfe8d)
+            const controlCharacteristic = museDevice
+                .getServiceMock(0xfe8d)
                 .getCharacteristicMock('273e0001-4c4d-454d-96be-f03bac821358');
             controlCharacteristic.writeValue = jest.fn();
 
             await client.connect();
             await client.start();
 
-            expect(controlCharacteristic.writeValue)
-                .toHaveBeenCalledWith(new Uint8Array([2, ...charCodes('h'), 10]));
-            expect(controlCharacteristic.writeValue)
-                .toHaveBeenCalledWith(new Uint8Array([2, ...charCodes('s'), 10]));
-            expect(controlCharacteristic.writeValue)
-                .toHaveBeenCalledWith(new Uint8Array([4, ...charCodes('p21'), 10]));
-            expect(controlCharacteristic.writeValue)
-                .toHaveBeenCalledWith(new Uint8Array([2, ...charCodes('d'), 10]));
+            expect(controlCharacteristic.writeValue).toHaveBeenCalledWith(new Uint8Array([2, ...charCodes('h'), 10]));
+            expect(controlCharacteristic.writeValue).toHaveBeenCalledWith(new Uint8Array([2, ...charCodes('s'), 10]));
+            expect(controlCharacteristic.writeValue).toHaveBeenCalledWith(new Uint8Array([4, ...charCodes('p21'), 10]));
+            expect(controlCharacteristic.writeValue).toHaveBeenCalledWith(new Uint8Array([2, ...charCodes('d'), 10]));
         });
 
         it('choose preset number 20 instead of 21 if aux is enabled', async () => {
             const client = new MuseClient();
-            const controlCharacteristic = museDevice.getServiceMock(0xfe8d)
+            const controlCharacteristic = museDevice
+                .getServiceMock(0xfe8d)
                 .getCharacteristicMock('273e0001-4c4d-454d-96be-f03bac821358');
             controlCharacteristic.writeValue = jest.fn();
 
@@ -90,10 +88,10 @@ describe('MuseClient', () => {
             await client.connect();
             await client.start();
 
-            expect(controlCharacteristic.writeValue)
-                .toHaveBeenCalledWith(new Uint8Array([4, ...charCodes('p20'), 10]));
-            expect(controlCharacteristic.writeValue)
-                .not.toHaveBeenCalledWith(new Uint8Array([4, ...charCodes('p21'), 10]));
+            expect(controlCharacteristic.writeValue).toHaveBeenCalledWith(new Uint8Array([4, ...charCodes('p20'), 10]));
+            expect(controlCharacteristic.writeValue).not.toHaveBeenCalledWith(
+                new Uint8Array([4, ...charCodes('p21'), 10]),
+            );
         });
     });
 
@@ -111,7 +109,8 @@ describe('MuseClient', () => {
             });
 
             eeg3Char.value = new DataView(
-                new Uint8Array([0, 1, 40, 3, 128, 40, 3, 128, 40, 3, 128, 40, 3, 128, 40, 3, 128, 40, 3, 128]).buffer);
+                new Uint8Array([0, 1, 40, 3, 128, 40, 3, 128, 40, 3, 128, 40, 3, 128, 40, 3, 128, 40, 3, 128]).buffer,
+            );
             const beforeDispatchTime = new Date().getTime();
             eeg3Char.dispatchEvent(new CustomEvent('characteristicvaluechanged'));
             const afterDispatchTime = new Date().getTime();
@@ -120,15 +119,25 @@ describe('MuseClient', () => {
                 electrode: 3,
                 index: 1,
                 samples: [
-                    -687.5, -562.5, -687.5, -562.5, -687.5, -562.5,
-                    -687.5, -562.5, -687.5, -562.5, -687.5, -562.5,
+                    -687.5,
+                    -562.5,
+                    -687.5,
+                    -562.5,
+                    -687.5,
+                    -562.5,
+                    -687.5,
+                    -562.5,
+                    -687.5,
+                    -562.5,
+                    -687.5,
+                    -562.5,
                 ],
                 timestamp: expect.any(Number),
             });
 
             // Timestamp should be about (1000/256.0*12) milliseconds behind the event dispatch time
-            expect(lastReading.timestamp).toBeGreaterThanOrEqual(beforeDispatchTime - (1000 / 256.0 * 12));
-            expect(lastReading.timestamp).toBeLessThanOrEqual(afterDispatchTime - (1000 / 256.0 * 12));
+            expect(lastReading.timestamp).toBeGreaterThanOrEqual(beforeDispatchTime - 1000 / 256.0 * 12);
+            expect(lastReading.timestamp).toBeLessThanOrEqual(afterDispatchTime - 1000 / 256.0 * 12);
         });
 
         it('should report the same timestamp for eeg events with the same sequence', async () => {
@@ -226,8 +235,7 @@ describe('MuseClient', () => {
             await client.connect();
             const deviceInfoPromise = client.deviceInfo();
 
-            expect(controlCharacteristic.writeValue)
-                .toHaveBeenCalledWith(new Uint8Array([3, ...charCodes('v1'), 10]));
+            expect(controlCharacteristic.writeValue).toHaveBeenCalledWith(new Uint8Array([3, ...charCodes('v1'), 10]));
 
             const deviceResponse = [
                 [16, 123, 34, 97, 112, 34, 58, 34, 104, 101, 97, 100, 115, 101, 116, 34, 44, 50, 51, 49],
