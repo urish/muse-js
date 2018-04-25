@@ -1,13 +1,5 @@
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
-import { Observable } from 'rxjs/Observable';
-
-import { fromEvent } from 'rxjs/observable/fromEvent';
-import { merge } from 'rxjs/observable/merge';
-import { filter } from 'rxjs/operators/filter';
-import { first } from 'rxjs/operators/first';
-import { map } from 'rxjs/operators/map';
-import { share } from 'rxjs/operators/share';
-import { take } from 'rxjs/operators/take';
+import { BehaviorSubject, fromEvent, merge, Observable } from 'rxjs';
+import { filter, first, map, share, take } from 'rxjs/operators';
 
 import {
     AccelerometerData, EEGReading, GyroscopeData, MuseControlResponse,

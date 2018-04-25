@@ -1,9 +1,5 @@
-import { Observable } from 'rxjs/Observable';
-
-import { concatMap } from 'rxjs/operators/concatMap';
-import { filter } from 'rxjs/operators/filter';
-import { map } from 'rxjs/operators/map';
-import { scan } from 'rxjs/operators/scan';
+import { Observable } from 'rxjs';
+import { concatMap, filter, map, scan } from 'rxjs/operators';
 
 import { AccelerometerData, EEGReading, GyroscopeData, TelemetryData } from './muse-interfaces';
 
