@@ -6,7 +6,7 @@ export function decodeResponse(bytes: Uint8Array) {
 }
 
 export function encodeCommand(cmd: string) {
-    const encoded = new TextEncoder('utf-8').encode(`X${cmd}\n`);
+    const encoded = new TextEncoder().encode(`X${cmd}\n`);
     encoded[0] = encoded.length - 1;
     return encoded;
 }

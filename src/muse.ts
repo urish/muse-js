@@ -63,7 +63,7 @@ export class MuseClient {
         this.deviceName = this.gatt.device.name || null;
 
         const service = await this.gatt.getPrimaryService(MUSE_SERVICE);
-        fromEvent<void>(this.gatt.device, 'gattserverdisconnected')
+        fromEvent(this.gatt.device, 'gattserverdisconnected')
             .pipe(first())
             .subscribe(() => {
                 this.gatt = null;

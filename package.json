@@ -28,13 +28,12 @@
     "prettier": "^1.12.1",
     "text-encoding": "^0.6.4",
     "tslint": "^5.8.0",
-    "typescript": "^2.4.2",
+    "typescript": "^2.8.3",
     "web-bluetooth-mock": "^1.0.2"
   },
   "dependencies": {
-    "@types/text-encoding": "^0.0.32",
     "@types/web-bluetooth": "^0.0.2",
-    "rxjs": "^5.6.0-forward-compat.4"
+    "rxjs": "^6.0.0 || ^5.6.0-forward-compat.4"
   },
   "jest": {
     "moduleFileExtensions": ["ts", "js"],
