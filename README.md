@@ -14,28 +14,27 @@ and then open http://localhost:4445/
 ## Usage example
 
 ```javascript
-
 import { MuseClient } from 'muse-js';
 
 async function main() {
-  let client = new MuseClient();
-  await client.connect();
-  await client.start();
-  client.eegReadings.subscribe(reading => {
-    console.log(reading);
-  });
-  client.telemetryData.subscribe(telemetry => {
-    console.log(telemetry);
-  });
-  client.accelerometerData.subscribe(acceleration => {
-    console.log(acceleration);
-  });
+    let client = new MuseClient();
+    await client.connect();
+    await client.start();
+    client.eegReadings.subscribe((reading) => {
+        console.log(reading);
+    });
+    client.telemetryData.subscribe((telemetry) => {
+        console.log(telemetry);
+    });
+    client.accelerometerData.subscribe((acceleration) => {
+        console.log(acceleration);
+    });
 }
 
 main();
 ```
 
-## Using in node.js
+## Usage in node.js
 
 You can use this library to connect to the Muse EEG headset from your node.js application.
 Use the [bleat](https://github.com/thegecko/bleat) package which emulates the Web Bluetooth API on top of [noble](https://github.com/sandeepmistry/noble):
@@ -46,7 +45,7 @@ const bluetooth = require('bleat').webbluetooth;
 
 async function connect() {
     let device = await bluetooth.requestDevice({
-        filters: [{ services: [MUSE_SERVICE] }]
+        filters: [{ services: [MUSE_SERVICE] }],
     });
     const gatt = await device.gatt.connect();
     const client = new MuseClient();
@@ -70,8 +69,24 @@ The Muse 2016 EEG headsets contains four electrodes, and you can connect an addi
 
 ```javascript
 async function main() {
-  let client = new MuseClient();
-  client.enableAux = true;
-  await client.connect();
+    let client = new MuseClient();
+    client.enableAux = true;
+    await client.connect();
+}
+```
+
+## Event Markers
+
+For convenience, there is an `eventMarkers` stream included in `MuseClient` that you can use in order to introduce timestamped event markers into your project. Just subscribe to `eventMarkers` and use the `injectMarker` method with the value and optional timestamp of an event to send it through the stream.
+
+```javascript
+async function main() {
+    let client = new MuseClient();
+    client.eventMarkers.subscribe((event) => {
+        console.log(event);
+    });
+    client.injectMarkers("house")
+    client.injectMarkers("face")
+    client.injectMarkers("dog")
 }
 ```

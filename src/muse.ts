@@ -1,9 +1,10 @@
-import { BehaviorSubject, fromEvent, merge, Observable } from 'rxjs';
+import { BehaviorSubject, fromEvent, merge, Observable, Subject } from 'rxjs';
 import { filter, first, map, share, take } from 'rxjs/operators';
 
 import {
     AccelerometerData,
     EEGReading,
+    EventMarker,
     GyroscopeData,
     MuseControlResponse,
     MuseDeviceInfo,
@@ -43,6 +44,7 @@ export class MuseClient {
     gyroscopeData: Observable<GyroscopeData>;
     accelerometerData: Observable<AccelerometerData>;
     eegReadings: Observable<EEGReading>;
+    eventMarkers: Subject<EventMarker>;
 
     private gatt: BluetoothRemoteGATTServer | null = null;
     private controlChar: BluetoothRemoteGATTCharacteristic;
@@ -92,6 +94,8 @@ export class MuseClient {
             map(parseAccelerometer),
         );
 
+        this.eventMarkers = new Subject();
+
         // EEG
         this.eegCharacteristics = [];
         const eegObservables = [];
@@ -139,9 +143,18 @@ export class MuseClient {
     }
 
     async deviceInfo() {
-        const resultListener = this.controlResponses.pipe(filter((r) => !!r.fw), take(1)).toPromise();
+        const resultListener = this.controlResponses
+            .pipe(
+                filter((r) => !!r.fw),
+                take(1),
+            )
+            .toPromise();
         await this.sendCommand('v1');
         return resultListener as Promise<MuseDeviceInfo>;
+    }
+
+    async injectMarker(value: string | number, timestamp: number = new Date().getTime()) {
+        await this.eventMarkers.next({ value, timestamp });
     }
 
     disconnect() {

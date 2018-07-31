@@ -136,8 +136,8 @@ describe('MuseClient', () => {
             });
 
             // Timestamp should be about (1000/256.0*12) milliseconds behind the event dispatch time
-            expect(lastReading.timestamp).toBeGreaterThanOrEqual(beforeDispatchTime - 1000 / 256.0 * 12);
-            expect(lastReading.timestamp).toBeLessThanOrEqual(afterDispatchTime - 1000 / 256.0 * 12);
+            expect(lastReading.timestamp).toBeGreaterThanOrEqual(beforeDispatchTime - (1000 / 256.0) * 12);
+            expect(lastReading.timestamp).toBeLessThanOrEqual(afterDispatchTime - (1000 / 256.0) * 12);
         });
 
         it('should report the same timestamp for eeg events with the same sequence', async () => {
@@ -201,7 +201,7 @@ describe('MuseClient', () => {
             eeg1Char.value = new DataView(new Uint8Array([0, 16]).buffer);
             eeg1Char.dispatchEvent(new CustomEvent('characteristicvaluechanged'));
 
-            expect(readings[1].timestamp - readings[0].timestamp).toEqual(-4 * 1000 / (256.0 / 12.0));
+            expect(readings[1].timestamp - readings[0].timestamp).toEqual((-4 * 1000) / (256.0 / 12.0));
         });
 
         it('should handle timestamp wraparound', async () => {
@@ -294,6 +294,44 @@ describe('MuseClient', () => {
         it('should silently return if connect() was not valled', async () => {
             const client = new MuseClient();
             client.disconnect();
+        });
+    });
+
+    describe('eventMarkers', () => {
+        it('should emit a marker whenever injectMarker is called', async () => {
+            const client = new MuseClient();
+            await client.connect();
+
+            const markers = [];
+            client.eventMarkers.subscribe((eventMarker) => {
+                markers.push(eventMarker);
+            });
+
+            await client.injectMarker('face', 1532808289990);
+            await client.injectMarker('house', 1532808281390);
+            await client.injectMarker('face', 1532808282390);
+            await client.injectMarker('house', 1532808285390);
+
+            expect(markers.length).toBe(4);
+            expect(markers[markers.length - 1]).toEqual({ value: 'house', timestamp: 1532808285390 });
+        });
+        it('should be able to timestamp on its own', async () => {
+            const client = new MuseClient();
+            await client.connect();
+
+            const markers = [];
+            client.eventMarkers.subscribe((eventMarker) => {
+                markers.push(eventMarker);
+            });
+
+            const startTime = new Date().getTime();
+            await client.injectMarker('house');
+            await client.injectMarker('face');
+            await client.injectMarker('house');
+            await client.injectMarker('face');
+
+            expect(markers.length).toBe(4);
+            expect(markers[markers.length - 1].timestamp).toBeCloseTo(startTime);
         });
     });
 });
