@@ -75,3 +75,19 @@ async function main() {
   await client.connect();
 }
 ```
+
+## Event Markers
+
+For convenience, there is an `eventMarkers` stream included in `MuseClient` that you can use in order to introduce timestamped event markers into your project. Just subscribe to `eventMarkers` and use the `injectMarker` method with the value and optional timestamp of an event to send it through the stream.
+
+```javascript
+async function main() {
+    let client = new MuseClient();
+    client.eventMarkers.subscribe((event) => {
+        console.log(event);
+    });
+    client.injectMarkers("house")
+    client.injectMarkers("face")
+    client.injectMarkers("dog")
+}
+```
