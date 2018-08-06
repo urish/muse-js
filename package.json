@@ -17,7 +17,9 @@
     "test": "npm run lint && jest",
     "test:watch": "jest --watch"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "devDependencies": {
     "@types/jest": "^22.2.3",
     "event-target-shim": "^3.0.0",
@@ -38,14 +40,26 @@
     "rxjs": "^6.0.0 || ^5.6.0-forward-compat.4"
   },
   "jest": {
-    "moduleFileExtensions": ["ts", "js"],
+    "moduleFileExtensions": [
+      "ts",
+      "js"
+    ],
     "transform": {
       "^.+\\.ts$": "ts-jest"
     },
-    "testMatch": ["**/*.spec.ts"]
+    "testMatch": [
+      "**/*.spec.ts"
+    ]
   },
   "lint-staged": {
-    "*.{js,json}": ["prettier --write", "git add"],
-    "*.ts": ["prettier --write", "tslint --fix", "git add"]
+    "*.{js,json}": [
+      "prettier --write",
+      "git add"
+    ],
+    "*.ts": [
+      "prettier --write",
+      "tslint --fix",
+      "git add"
+    ]
   }
 }

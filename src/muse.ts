@@ -143,12 +143,7 @@ export class MuseClient {
     }
 
     async deviceInfo() {
-        const resultListener = this.controlResponses
-            .pipe(
-                filter((r) => !!r.fw),
-                take(1),
-            )
-            .toPromise();
+        const resultListener = this.controlResponses.pipe(filter((r) => !!r.fw), take(1)).toPromise();
         await this.sendCommand('v1');
         return resultListener as Promise<MuseDeviceInfo>;
     }
