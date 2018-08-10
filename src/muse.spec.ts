@@ -296,4 +296,43 @@ describe('MuseClient', () => {
             client.disconnect();
         });
     });
+
+    describe('eventMarkers', () => {
+        it('should emit a marker whenever injectMarker is called', async () => {
+            const client = new MuseClient();
+            await client.connect();
+
+            const markers = [];
+            client.eventMarkers.subscribe((eventMarker) => {
+                markers.push(eventMarker);
+            });
+
+            await client.injectMarker('face', 1532808289990);
+            await client.injectMarker('house', 1532808281390);
+            await client.injectMarker('face', 1532808282390);
+            await client.injectMarker('house', 1532808285390);
+
+            expect(markers.length).toBe(4);
+            expect(markers[markers.length - 1]).toEqual({ value: 'house', timestamp: 1532808285390 });
+        });
+
+        it('should be able to timestamp on its own', async () => {
+            const client = new MuseClient();
+            await client.connect();
+
+            const markers = [];
+            client.eventMarkers.subscribe((eventMarker) => {
+                markers.push(eventMarker);
+            });
+
+            const startTime = new Date().getTime();
+            await client.injectMarker('house');
+            await client.injectMarker('face');
+            await client.injectMarker('house');
+            await client.injectMarker('face');
+
+            expect(markers.length).toBe(4);
+            expect(markers[markers.length - 1].timestamp).toBeCloseTo(startTime);
+        });
+    });
 });

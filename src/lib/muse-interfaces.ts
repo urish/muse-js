@@ -39,4 +39,9 @@ export interface MuseDeviceInfo extends MuseControlResponse {
     tp: string;
 }
 
+export interface EventMarker {
+    value: string | number;
+    timestamp: number;
+}
+
 export type GyroscopeData = AccelerometerData;
