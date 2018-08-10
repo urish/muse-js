@@ -332,7 +332,9 @@ describe('MuseClient', () => {
             await client.injectMarker('face');
 
             expect(markers.length).toBe(4);
-            expect(markers[markers.length - 1].timestamp).toBeCloseTo(startTime);
+            const lastMarker = markers[markers.length - 1];
+            expect(lastMarker.timestamp).toBeGreaterThanOrEqual(startTime);
+            expect(lastMarker.timestamp).toBeLessThanOrEqual(new Date().getTime());
         });
     });
 });
