@@ -54,72 +54,91 @@ export class MuseClient {
     private lastTimestamp: number | null = null;
 
     async connect(gatt?: BluetoothRemoteGATTServer) {
-        if (gatt) {
-            this.gatt = gatt;
-        } else {
-            const device = await navigator.bluetooth.requestDevice({
-                filters: [{ services: [MUSE_SERVICE] }],
-            });
-            this.gatt = await device.gatt!.connect();
+        let tryCount = 0;
+        const maxTries = 2;
+        while (true) {
+            try {
+                if (gatt) {
+                    this.gatt = gatt;
+                } else {
+                    const device = await navigator.bluetooth.requestDevice({
+                        filters: [{ services: [MUSE_SERVICE] }],
+                    });
+                    this.gatt = await device.gatt!.connect();
+                }
+                this.deviceName = this.gatt.device.name || null;
+
+                const service = await this.gatt.getPrimaryService(MUSE_SERVICE);
+                fromEvent(this.gatt.device, 'gattserverdisconnected')
+                    .pipe(first())
+                    .subscribe(() => {
+                        this.gatt = null;
+                        this.connectionStatus.next(false);
+                    });
+
+                // Control
+                this.controlChar = await service.getCharacteristic(CONTROL_CHARACTERISTIC);
+                this.rawControlData = (await observableCharacteristic(this.controlChar)).pipe(
+                    map((data) => decodeResponse(new Uint8Array(data.buffer))),
+                    share(),
+                );
+                this.controlResponses = parseControl(this.rawControlData);
+
+                // Battery
+                const telemetryCharacteristic = await service.getCharacteristic(TELEMETRY_CHARACTERISTIC);
+                this.telemetryData = (await observableCharacteristic(telemetryCharacteristic)).pipe(
+                    map(parseTelemetry),
+                );
+
+                // Gyroscope
+                const gyroscopeCharacteristic = await service.getCharacteristic(GYROSCOPE_CHARACTERISTIC);
+                this.gyroscopeData = (await observableCharacteristic(gyroscopeCharacteristic)).pipe(
+                    map(parseGyroscope),
+                );
+
+                // Accelerometer
+                const accelerometerCharacteristic = await service.getCharacteristic(ACCELEROMETER_CHARACTERISTIC);
+                this.accelerometerData = (await observableCharacteristic(accelerometerCharacteristic)).pipe(
+                    map(parseAccelerometer),
+                );
+
+                this.eventMarkers = new Subject();
+
+                // EEG
+                this.eegCharacteristics = [];
+                const eegObservables = [];
+                const channelCount = this.enableAux ? EEG_CHARACTERISTICS.length : 4;
+                for (let channelIndex = 0; channelIndex < channelCount; channelIndex++) {
+                    const characteristicId = EEG_CHARACTERISTICS[channelIndex];
+                    const eegChar = await service.getCharacteristic(characteristicId);
+                    eegObservables.push(
+                        (await observableCharacteristic(eegChar)).pipe(
+                            map((data) => {
+                                const eventIndex = data.getUint16(0);
+                                return {
+                                    electrode: channelIndex,
+                                    index: eventIndex,
+                                    samples: decodeEEGSamples(new Uint8Array(data.buffer).subarray(2)),
+                                    timestamp: this.getTimestamp(eventIndex),
+                                };
+                            }),
+                        ),
+                    );
+                    this.eegCharacteristics.push(eegChar);
+                }
+                this.eegReadings = merge(...eegObservables);
+                this.connectionStatus.next(true);
+                return;
+            } catch (e) {
+                // If headset is in bootloader mode, send 'reset to headband mode' command
+                if (e.toString().includes('No Characteristics')) {
+                    this.sendCommand('*1');
+                }
+                if (++tryCount === maxTries) {
+                    throw e;
+                }
+            }
         }
-        this.deviceName = this.gatt.device.name || null;
-
-        const service = await this.gatt.getPrimaryService(MUSE_SERVICE);
-        fromEvent(this.gatt.device, 'gattserverdisconnected')
-            .pipe(first())
-            .subscribe(() => {
-                this.gatt = null;
-                this.connectionStatus.next(false);
-            });
-
-        // Control
-        this.controlChar = await service.getCharacteristic(CONTROL_CHARACTERISTIC);
-        this.rawControlData = (await observableCharacteristic(this.controlChar)).pipe(
-            map((data) => decodeResponse(new Uint8Array(data.buffer))),
-            share(),
-        );
-        this.controlResponses = parseControl(this.rawControlData);
-
-        // Battery
-        const telemetryCharacteristic = await service.getCharacteristic(TELEMETRY_CHARACTERISTIC);
-        this.telemetryData = (await observableCharacteristic(telemetryCharacteristic)).pipe(map(parseTelemetry));
-
-        // Gyroscope
-        const gyroscopeCharacteristic = await service.getCharacteristic(GYROSCOPE_CHARACTERISTIC);
-        this.gyroscopeData = (await observableCharacteristic(gyroscopeCharacteristic)).pipe(map(parseGyroscope));
-
-        // Accelerometer
-        const accelerometerCharacteristic = await service.getCharacteristic(ACCELEROMETER_CHARACTERISTIC);
-        this.accelerometerData = (await observableCharacteristic(accelerometerCharacteristic)).pipe(
-            map(parseAccelerometer),
-        );
-
-        this.eventMarkers = new Subject();
-
-        // EEG
-        this.eegCharacteristics = [];
-        const eegObservables = [];
-        const channelCount = this.enableAux ? EEG_CHARACTERISTICS.length : 4;
-        for (let channelIndex = 0; channelIndex < channelCount; channelIndex++) {
-            const characteristicId = EEG_CHARACTERISTICS[channelIndex];
-            const eegChar = await service.getCharacteristic(characteristicId);
-            eegObservables.push(
-                (await observableCharacteristic(eegChar)).pipe(
-                    map((data) => {
-                        const eventIndex = data.getUint16(0);
-                        return {
-                            electrode: channelIndex,
-                            index: eventIndex,
-                            samples: decodeEEGSamples(new Uint8Array(data.buffer).subarray(2)),
-                            timestamp: this.getTimestamp(eventIndex),
-                        };
-                    }),
-                ),
-            );
-            this.eegCharacteristics.push(eegChar);
-        }
-        this.eegReadings = merge(...eegObservables);
-        this.connectionStatus.next(true);
     }
 
     async sendCommand(cmd: string) {
