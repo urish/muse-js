@@ -86,8 +86,8 @@ async function main() {
     client.eventMarkers.subscribe((event) => {
         console.log(event);
     });
-    client.injectMarkers("house")
-    client.injectMarkers("face")
-    client.injectMarkers("dog")
+    client.injectMarker("house")
+    client.injectMarker("face")
+    client.injectMarker("dog")
 }
 ```
