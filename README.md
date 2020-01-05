@@ -91,3 +91,8 @@ async function main() {
     client.injectMarker("dog")
 }
 ```
+
+## Projects using muse-js
+
+* [EEGEdu](https://eegedu.com/) - Interactive Brain Playground. [Source code](https://github.com/kylemath/EEGEdu) using React, Polaris and chartjs.
+* [EEG Explorer](https://muse-eeg-app.web.app/) - Visual EEG readings from the Muse EEG Headset. [Source code](https://github.com/urish/eeg-explorer) using Angular, Material Design and smoothie charts.
