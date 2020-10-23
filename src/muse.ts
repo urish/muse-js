@@ -15,7 +15,7 @@ import { decodeEEGSamples, parseAccelerometer, parseControl, parseGyroscope, par
 import { decodeResponse, encodeCommand, observableCharacteristic } from './lib/muse-utils';
 
 export { zipSamples, EEGSample } from './lib/zip-samples';
-export { EEGReading, TelemetryData, AccelerometerData, GyroscopeData, XYZ, MuseControlResponse };
+export { EEGReading, TelemetryData, AccelerometerData, GyroscopeData, XYZ, MuseControlResponse, MuseDeviceInfo };
 
 export const MUSE_SERVICE = 0xfe8d;
 const CONTROL_CHARACTERISTIC = '273e0001-4c4d-454d-96be-f03bac821358';
