@@ -13,7 +13,7 @@ export function zipSamples(eegReadings: Observable<EEGReading>): Observable<EEGS
     const buffer: EEGReading[] = [];
     let lastTimestamp: number | null = null;
     return eegReadings.pipe(
-        mergeMap<EEGReading, EEGReading[]>((reading) => {
+        mergeMap((reading) => {
             if (reading.timestamp !== lastTimestamp) {
                 lastTimestamp = reading.timestamp;
                 if (buffer.length) {
@@ -35,7 +35,7 @@ export function zipSamples(eegReadings: Observable<EEGReading>): Observable<EEGS
                 return {
                     data,
                     index: readings[0].index,
-                    timestamp: readings[0].timestamp + index * 1000. / EEG_FREQUENCY,
+                    timestamp: readings[0].timestamp + (index * 1000) / EEG_FREQUENCY,
                 };
             });
             return from(result);
