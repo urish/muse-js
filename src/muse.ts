@@ -57,6 +57,9 @@ export class MuseClient {
         if (gatt) {
             this.gatt = gatt;
         } else {
+            if (!navigator.bluetooth) {
+                throw new Error('Bluetooth support required');
+            }
             const device = await navigator.bluetooth.requestDevice({
                 filters: [{ services: [MUSE_SERVICE] }],
             });
@@ -143,7 +146,12 @@ export class MuseClient {
     }
 
     async deviceInfo() {
-        const resultListener = this.controlResponses.pipe(filter((r) => !!r.fw), take(1)).toPromise();
+        const resultListener = this.controlResponses
+            .pipe(
+                filter((r) => !!r.fw),
+                take(1),
+            )
+            .toPromise();
         await this.sendCommand('v1');
         return resultListener as Promise<MuseDeviceInfo>;
     }
