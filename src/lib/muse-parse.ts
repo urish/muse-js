@@ -37,7 +37,7 @@ export function decodeUnsigned24BitData(samples: Uint8Array) {
     const samples24Bit = [];
     // tslint:disable:no-bitwise
     for (let i = 0; i < samples.length; i = i + 3) {
-        samples24Bit.push((samples[i] << 16) | (samples[i + 1] << 8) | samples[i + 3]);
+        samples24Bit.push((samples[i] << 16) | (samples[i + 1] << 8) | samples[i + 2]);
     }
     // tslint:enable:no-bitwise
     return samples24Bit;

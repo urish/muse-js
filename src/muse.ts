@@ -185,11 +185,11 @@ export class MuseClient {
 
     async start() {
         await this.pause();
-        let preset = 'p20';
-        if (this.enableAux && this.enablePpg) {
+        let preset = 'p21';
+        if (this.enablePpg) {
             preset = 'p50';
         } else if (this.enableAux) {
-            preset = 'p21';
+            preset = 'p20';
         }
 
         await this.controlChar.writeValue(encodeCommand(preset));

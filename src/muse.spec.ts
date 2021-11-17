@@ -36,6 +36,18 @@ describe('MuseClient', () => {
             expect(eeg1Char.startNotifications).toHaveBeenCalled();
         });
 
+        it('should call startNotifications() on the PPG channel characteritics', async () => {
+            const service = museDevice.getServiceMock(0xfe8d);
+            const ppg1Char = service.getCharacteristicMock('273e000f-4c4d-454d-96be-f03bac821358');
+            ppg1Char.startNotifications = jest.fn();
+
+            const client = new MuseClient();
+            client.enablePpg = true;
+            await client.connect();
+
+            expect(ppg1Char.startNotifications).toHaveBeenCalled();
+        });
+
         it('should not call startNotifications() on the Aux EEG electrode by default', async () => {
             const service = museDevice.getServiceMock(0xfe8d);
             const eegAuxChar = service.getCharacteristicMock('273e0007-4c4d-454d-96be-f03bac821358');
@@ -93,6 +105,24 @@ describe('MuseClient', () => {
                 new Uint8Array([4, ...charCodes('p21'), 10]),
             );
         });
+
+        it('choose preset number 50 instead of 20/21 if ppg is enabled', async () => {
+            const client = new MuseClient();
+            const controlCharacteristic = museDevice
+                .getServiceMock(0xfe8d)
+                .getCharacteristicMock('273e0001-4c4d-454d-96be-f03bac821358');
+            controlCharacteristic.writeValue = jest.fn();
+
+            client.enableAux = true;
+            client.enablePpg = true;
+            await client.connect();
+            await client.start();
+
+            expect(controlCharacteristic.writeValue).toHaveBeenCalledWith(new Uint8Array([4, ...charCodes('p50'), 10]));
+            expect(controlCharacteristic.writeValue).not.toHaveBeenCalledWith(
+                new Uint8Array([4, ...charCodes('p21'), 10]),
+            );
+        });
     });
 
     describe('eegReadings', () => {
@@ -136,8 +166,8 @@ describe('MuseClient', () => {
             });
 
             // Timestamp should be about (1000/256.0*12) milliseconds behind the event dispatch time
-            expect(lastReading.timestamp).toBeGreaterThanOrEqual(beforeDispatchTime - 1000 / 256.0 * 12);
-            expect(lastReading.timestamp).toBeLessThanOrEqual(afterDispatchTime - 1000 / 256.0 * 12);
+            expect(lastReading.timestamp).toBeGreaterThanOrEqual(beforeDispatchTime - (1000 / 256.0) * 12);
+            expect(lastReading.timestamp).toBeLessThanOrEqual(afterDispatchTime - (1000 / 256.0) * 12);
         });
 
         it('should report the same timestamp for eeg events with the same sequence', async () => {
@@ -201,7 +231,7 @@ describe('MuseClient', () => {
             eeg1Char.value = new DataView(new Uint8Array([0, 16]).buffer);
             eeg1Char.dispatchEvent(new CustomEvent('characteristicvaluechanged'));
 
-            expect(readings[1].timestamp - readings[0].timestamp).toEqual(-4 * 1000 / (256.0 / 12.0));
+            expect(readings[1].timestamp - readings[0].timestamp).toEqual((-4 * 1000) / (256.0 / 12.0));
         });
 
         it('should handle timestamp wraparound', async () => {
@@ -222,6 +252,77 @@ describe('MuseClient', () => {
             eeg1Char.dispatchEvent(new CustomEvent('characteristicvaluechanged'));
 
             expect(readings[1].timestamp - readings[0].timestamp).toEqual(1000 / (256.0 / 12.0));
+        });
+    });
+
+    describe('ppgReadings', () => {
+        it('should report the same timestamp for ppg events with the same sequence', async () => {
+            const service = museDevice.getServiceMock(0xfe8d);
+            const ppg0Char = service.getCharacteristicMock('273e000f-4c4d-454d-96be-f03bac821358');
+            const ppg1Char = service.getCharacteristicMock('273e0010-4c4d-454d-96be-f03bac821358');
+
+            const client = new MuseClient();
+            client.enablePpg = true;
+            await client.connect();
+
+            const readings: PPGReading[] = [];
+            client.ppgReadings.subscribe((reading) => {
+                readings.push(reading);
+            });
+
+            ppg0Char.value = new DataView(new Uint8Array([0, 15]).buffer);
+            ppg0Char.dispatchEvent(new CustomEvent('characteristicvaluechanged'));
+            ppg1Char.value = new DataView(new Uint8Array([0, 15]).buffer);
+            ppg1Char.dispatchEvent(new CustomEvent('characteristicvaluechanged'));
+
+            expect(readings.length).toBe(2);
+            expect(readings[0].ppgChannel).toBe(0);
+            expect(readings[1].ppgChannel).toBe(1);
+            expect(readings[0].timestamp).toEqual(readings[1].timestamp);
+        });
+
+        it('should bump the timestamp for subsequent PPG events', async () => {
+            const service = museDevice.getServiceMock(0xfe8d);
+            const ppg0Char = service.getCharacteristicMock('273e000f-4c4d-454d-96be-f03bac821358');
+
+            const client = new MuseClient();
+            client.enableAux = true;
+            client.enablePpg = true;
+            await client.connect();
+
+            const readings: PPGReading[] = [];
+            client.ppgReadings.subscribe((reading) => {
+                readings.push(reading);
+            });
+
+            ppg0Char.value = new DataView(new Uint8Array([0, 15]).buffer);
+            ppg0Char.dispatchEvent(new CustomEvent('characteristicvaluechanged'));
+            ppg0Char.value = new DataView(new Uint8Array([0, 16]).buffer);
+            ppg0Char.dispatchEvent(new CustomEvent('characteristicvaluechanged'));
+
+            expect(readings[1].timestamp - readings[0].timestamp).toEqual(1000 / (256.0 / 12.0));
+        });
+
+        it('should correctly handle out-of-order PPG events', async () => {
+            const service = museDevice.getServiceMock(0xfe8d);
+            const ppg1Char = service.getCharacteristicMock('273e0010-4c4d-454d-96be-f03bac821358');
+
+            const client = new MuseClient();
+            client.enableAux = true;
+            client.enablePpg = true;
+            await client.connect();
+
+            const readings: PPGReading[] = [];
+            client.ppgReadings.subscribe((reading) => {
+                readings.push(reading);
+            });
+
+            ppg1Char.value = new DataView(new Uint8Array([0, 20]).buffer);
+            ppg1Char.dispatchEvent(new CustomEvent('characteristicvaluechanged'));
+            ppg1Char.value = new DataView(new Uint8Array([0, 16]).buffer);
+            ppg1Char.dispatchEvent(new CustomEvent('characteristicvaluechanged'));
+
+            expect(readings[1].timestamp - readings[0].timestamp).toEqual((-4 * 1000) / (256.0 / 12.0));
         });
     });
 
