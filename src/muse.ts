@@ -23,6 +23,7 @@ import {
 import { decodeResponse, encodeCommand, observableCharacteristic } from './lib/muse-utils';
 
 export { zipSamples, EEGSample } from './lib/zip-samples';
+export { zipSamplesPpg, PPGSample } from './lib/zip-samplesPpg';
 export {
     EEGReading,
     PPGReading,
