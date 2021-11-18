@@ -1,6 +1,6 @@
 import { TextDecoder, TextEncoder } from 'text-encoding';
 import { DeviceMock, WebBluetoothMock } from 'web-bluetooth-mock';
-import { EEGReading } from './../dist/lib/muse-interfaces.d';
+import { EEGReading, PPGReading } from './../dist/lib/muse-interfaces.d';
 import { MuseClient } from './muse';
 
 declare var global;
@@ -300,7 +300,7 @@ describe('MuseClient', () => {
             ppg0Char.value = new DataView(new Uint8Array([0, 16]).buffer);
             ppg0Char.dispatchEvent(new CustomEvent('characteristicvaluechanged'));
 
-            expect(readings[1].timestamp - readings[0].timestamp).toEqual(1000 / (256.0 / 12.0));
+            expect(readings[1].timestamp - readings[0].timestamp).toEqual(1000 / (64.0 / 6.0));
         });
 
         it('should correctly handle out-of-order PPG events', async () => {
@@ -322,7 +322,7 @@ describe('MuseClient', () => {
             ppg1Char.value = new DataView(new Uint8Array([0, 16]).buffer);
             ppg1Char.dispatchEvent(new CustomEvent('characteristicvaluechanged'));
 
-            expect(readings[1].timestamp - readings[0].timestamp).toEqual((-4 * 1000) / (256.0 / 12.0));
+            expect(readings[1].timestamp - readings[0].timestamp).toEqual((-4 * 1000) / (64.0 / 6.0));
         });
     });
 

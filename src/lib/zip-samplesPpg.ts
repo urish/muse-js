@@ -30,7 +30,7 @@ export function zipSamplesPpg(ppgReadings: Observable<PPGReading>): Observable<P
             const result = readings[0].samples.map((x, index) => {
                 const data = [NaN, NaN, NaN];
                 for (const reading of readings) {
-                    data[reading.electrode] = reading.samples[index];
+                    data[reading.ppgChannel] = reading.samples[index];
                 }
                 return {
                     data,

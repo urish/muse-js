@@ -46,7 +46,7 @@ const PPG_CHARACTERISTICS = [
     '273e0011-4c4d-454d-96be-f03bac821358', // red 0x3d-0x3f
 ];
 export const PPG_FREQUENCY = 64;
-export const PPG_SAMPLES_PER_READING = 12;
+export const PPG_SAMPLES_PER_READING = 6;
 const EEG_CHARACTERISTICS = [
     '273e0003-4c4d-454d-96be-f03bac821358',
     '273e0004-4c4d-454d-96be-f03bac821358',
@@ -144,7 +144,7 @@ export class MuseClient {
                                 index: eventIndex,
                                 ppgChannel: ppgChannelIndex,
                                 samples: decodePPGSamples(new Uint8Array(data.buffer).subarray(2)),
-                                timestamp: this.getTimestamp(eventIndex, PPG_SAMPLES_PER_READING),
+                                timestamp: this.getTimestamp(eventIndex, PPG_SAMPLES_PER_READING, PPG_FREQUENCY),
                             };
                         }),
                     ),
@@ -169,7 +169,7 @@ export class MuseClient {
                             electrode: channelIndex,
                             index: eventIndex,
                             samples: decodeEEGSamples(new Uint8Array(data.buffer).subarray(2)),
-                            timestamp: this.getTimestamp(eventIndex, EEG_SAMPLES_PER_READING),
+                            timestamp: this.getTimestamp(eventIndex, EEG_SAMPLES_PER_READING, EEG_FREQUENCY),
                         };
                     }),
                 ),
@@ -230,8 +230,8 @@ export class MuseClient {
         }
     }
 
-    private getTimestamp(eventIndex: number, samplesPerReading: number) {
-        const READING_DELTA = 1000 * (1.0 / EEG_FREQUENCY) * samplesPerReading;
+    private getTimestamp(eventIndex: number, samplesPerReading: number, frequency: number) {
+        const READING_DELTA = 1000 * (1.0 / frequency) * samplesPerReading;
         if (this.lastIndex === null || this.lastTimestamp === null) {
             this.lastIndex = eventIndex;
             this.lastTimestamp = new Date().getTime() - READING_DELTA;
