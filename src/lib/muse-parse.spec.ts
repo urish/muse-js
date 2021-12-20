@@ -3,6 +3,7 @@ import { toArray } from 'rxjs/operators';
 
 import {
     decodeUnsigned12BitData,
+    decodeUnsigned24BitData,
     parseAccelerometer,
     parseControl,
     parseGyroscope,
@@ -85,6 +86,13 @@ describe('decodeUnsigned12BitData', () => {
             711,
             1949,
         ]);
+    });
+});
+
+describe('decodeUnsigned24BitData', () => {
+    it('should correctly decode 24-bit PPG samples received from muse', () => {
+        const input = new Uint8Array([87, 33, 192, 82, 73, 6, 106, 242, 49, 64, 88, 153, 128, 66, 254, 44, 119, 157]);
+        expect(decodeUnsigned24BitData(input)).toEqual([5710272, 5392646, 7008817, 4216985, 8405758, 2914205]);
     });
 });
 

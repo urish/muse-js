@@ -8,20 +8,45 @@ import {
     GyroscopeData,
     MuseControlResponse,
     MuseDeviceInfo,
+    PPGReading,
     TelemetryData,
     XYZ,
 } from './lib/muse-interfaces';
-import { decodeEEGSamples, parseAccelerometer, parseControl, parseGyroscope, parseTelemetry } from './lib/muse-parse';
+import {
+    decodeEEGSamples,
+    decodePPGSamples,
+    parseAccelerometer,
+    parseControl,
+    parseGyroscope,
+    parseTelemetry,
+} from './lib/muse-parse';
 import { decodeResponse, encodeCommand, observableCharacteristic } from './lib/muse-utils';
 
 export { zipSamples, EEGSample } from './lib/zip-samples';
-export { EEGReading, TelemetryData, AccelerometerData, GyroscopeData, XYZ, MuseControlResponse, MuseDeviceInfo };
+export { zipSamplesPpg, PPGSample } from './lib/zip-samplesPpg';
+export {
+    EEGReading,
+    PPGReading,
+    TelemetryData,
+    AccelerometerData,
+    GyroscopeData,
+    XYZ,
+    MuseControlResponse,
+    MuseDeviceInfo,
+};
 
 export const MUSE_SERVICE = 0xfe8d;
 const CONTROL_CHARACTERISTIC = '273e0001-4c4d-454d-96be-f03bac821358';
 const TELEMETRY_CHARACTERISTIC = '273e000b-4c4d-454d-96be-f03bac821358';
 const GYROSCOPE_CHARACTERISTIC = '273e0009-4c4d-454d-96be-f03bac821358';
 const ACCELEROMETER_CHARACTERISTIC = '273e000a-4c4d-454d-96be-f03bac821358';
+const PPG_CHARACTERISTICS = [
+    '273e000f-4c4d-454d-96be-f03bac821358', // ambient 0x37-0x39
+    '273e0010-4c4d-454d-96be-f03bac821358', // infrared 0x3a-0x3c
+    '273e0011-4c4d-454d-96be-f03bac821358', // red 0x3d-0x3f
+];
+export const PPG_FREQUENCY = 64;
+export const PPG_SAMPLES_PER_READING = 6;
 const EEG_CHARACTERISTICS = [
     '273e0003-4c4d-454d-96be-f03bac821358',
     '273e0004-4c4d-454d-96be-f03bac821358',
@@ -30,12 +55,17 @@ const EEG_CHARACTERISTICS = [
     '273e0007-4c4d-454d-96be-f03bac821358',
 ];
 export const EEG_FREQUENCY = 256;
+export const EEG_SAMPLES_PER_READING = 12;
+
+// These names match the characteristics defined in PPG_CHARACTERISTICS above
+export const ppgChannelNames = ['ambient', 'infrared', 'red'];
 
 // These names match the characteristics defined in EEG_CHARACTERISTICS above
 export const channelNames = ['TP9', 'AF7', 'AF8', 'TP10', 'AUX'];
 
 export class MuseClient {
     enableAux = false;
+    enablePpg = false;
     deviceName: string | null = '';
     connectionStatus = new BehaviorSubject<boolean>(false);
     rawControlData: Observable<string>;
@@ -44,11 +74,13 @@ export class MuseClient {
     gyroscopeData: Observable<GyroscopeData>;
     accelerometerData: Observable<AccelerometerData>;
     eegReadings: Observable<EEGReading>;
+    ppgReadings: Observable<PPGReading>;
     eventMarkers: Subject<EventMarker>;
 
     private gatt: BluetoothRemoteGATTServer | null = null;
     private controlChar: BluetoothRemoteGATTCharacteristic;
     private eegCharacteristics: BluetoothRemoteGATTCharacteristic[];
+    private ppgCharacteristics: BluetoothRemoteGATTCharacteristic[];
 
     private lastIndex: number | null = null;
     private lastTimestamp: number | null = null;
@@ -96,6 +128,32 @@ export class MuseClient {
 
         this.eventMarkers = new Subject();
 
+        // PPG
+        if (this.enablePpg) {
+            this.ppgCharacteristics = [];
+            const ppgObservables = [];
+            const ppgChannelCount = PPG_CHARACTERISTICS.length;
+            for (let ppgChannelIndex = 0; ppgChannelIndex < ppgChannelCount; ppgChannelIndex++) {
+                const characteristicId = PPG_CHARACTERISTICS[ppgChannelIndex];
+                const ppgChar = await service.getCharacteristic(characteristicId);
+                ppgObservables.push(
+                    (await observableCharacteristic(ppgChar)).pipe(
+                        map((data) => {
+                            const eventIndex = data.getUint16(0);
+                            return {
+                                index: eventIndex,
+                                ppgChannel: ppgChannelIndex,
+                                samples: decodePPGSamples(new Uint8Array(data.buffer).subarray(2)),
+                                timestamp: this.getTimestamp(eventIndex, PPG_SAMPLES_PER_READING, PPG_FREQUENCY),
+                            };
+                        }),
+                    ),
+                );
+                this.ppgCharacteristics.push(ppgChar);
+            }
+            this.ppgReadings = merge(...ppgObservables);
+        }
+
         // EEG
         this.eegCharacteristics = [];
         const eegObservables = [];
@@ -111,7 +169,7 @@ export class MuseClient {
                             electrode: channelIndex,
                             index: eventIndex,
                             samples: decodeEEGSamples(new Uint8Array(data.buffer).subarray(2)),
-                            timestamp: this.getTimestamp(eventIndex),
+                            timestamp: this.getTimestamp(eventIndex, EEG_SAMPLES_PER_READING, EEG_FREQUENCY),
                         };
                     }),
                 ),
@@ -128,7 +186,13 @@ export class MuseClient {
 
     async start() {
         await this.pause();
-        const preset = this.enableAux ? 'p20' : 'p21';
+        let preset = 'p21';
+        if (this.enablePpg) {
+            preset = 'p50';
+        } else if (this.enableAux) {
+            preset = 'p20';
+        }
+
         await this.controlChar.writeValue(encodeCommand(preset));
         await this.controlChar.writeValue(encodeCommand('s'));
         await this.resume();
@@ -143,7 +207,12 @@ export class MuseClient {
     }
 
     async deviceInfo() {
-        const resultListener = this.controlResponses.pipe(filter((r) => !!r.fw), take(1)).toPromise();
+        const resultListener = this.controlResponses
+            .pipe(
+                filter((r) => !!r.fw),
+                take(1),
+            )
+            .toPromise();
         await this.sendCommand('v1');
         return resultListener as Promise<MuseDeviceInfo>;
     }
@@ -161,9 +230,8 @@ export class MuseClient {
         }
     }
 
-    private getTimestamp(eventIndex: number) {
-        const SAMPLES_PER_READING = 12;
-        const READING_DELTA = 1000 * (1.0 / EEG_FREQUENCY) * SAMPLES_PER_READING;
+    private getTimestamp(eventIndex: number, samplesPerReading: number, frequency: number) {
+        const READING_DELTA = 1000 * (1.0 / frequency) * samplesPerReading;
         if (this.lastIndex === null || this.lastTimestamp === null) {
             this.lastIndex = eventIndex;
             this.lastTimestamp = new Date().getTime() - READING_DELTA;
