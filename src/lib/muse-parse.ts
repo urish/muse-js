@@ -1,7 +1,7 @@
 import { Observable } from 'rxjs';
 import { concatMap, filter, map, scan } from 'rxjs/operators';
 
-import { AccelerometerData, EEGReading, PPGReading, GyroscopeData, TelemetryData } from './muse-interfaces';
+import { AccelerometerData, EEGReading, GyroscopeData, PPGReading, TelemetryData } from './muse-interfaces';
 
 export function parseControl(controlData: Observable<string>) {
     return controlData.pipe(

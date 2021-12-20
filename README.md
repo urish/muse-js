@@ -90,6 +90,14 @@ async function main() {
 }
 ```
 
+To subscribe and receive values from PPG, it's just like subscribing to EEG (see **Usage Example**):
+
+```javascript
+client.ppgReadings.subscribe((ppgreading) => {
+    console.log(ppgreading);
+});
+```
+
 ## Event Markers
 
 For convenience, there is an `eventMarkers` stream included in `MuseClient` that you can use in order to introduce timestamped event markers into your project. Just subscribe to `eventMarkers` and use the `injectMarker` method with the value and optional timestamp of an event to send it through the stream.
