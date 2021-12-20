@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/urish/muse-js.png?branch=master)](https://travis-ci.org/urish/muse-js)
 
-Muse 2016 EEG Headset JavaScript Library (using Web Bluetooth)
+Muse 1, Muse 2, and Muse S EEG Headset JavaScript Library (using Web Bluetooth).
 
 ## Running the demo app
 
@@ -72,6 +72,20 @@ The Muse 2016 EEG headsets contains four electrodes, and you can connect an addi
 async function main() {
   let client = new MuseClient();
   client.enableAux = true;
+  await client.connect();
+}
+```
+
+## PPG (Photoplethysmography) / Optical Sensor
+
+The Muse 2 and Muse S contain PPG/optical blood sensors, which this library supports. There are three signal streams, ppg1, ppg2, and ppg3. These are ambient, infrared, and red (respectively) on the Muse 2, and (we think, unconfirmed) infrared, green, and unknown (respectively) on the Muse S. To use PPG, ensure you enable it before connecting to a Muse. PPG is not present and thus will not work on Muse 1/1.5, and enabling it may have unexpected consequences.  
+
+To enable PPG:
+
+```javascript
+async function main() {
+  let client = new MuseClient();
+  client.enablePpg = true;
   await client.connect();
 }
 ```
