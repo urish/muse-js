@@ -89,6 +89,9 @@ export class MuseClient {
         if (gatt) {
             this.gatt = gatt;
         } else {
+            if (!navigator.bluetooth) {
+                throw new Error('Bluetooth support required');
+            }
             const device = await navigator.bluetooth.requestDevice({
                 filters: [{ services: [MUSE_SERVICE] }],
             });
