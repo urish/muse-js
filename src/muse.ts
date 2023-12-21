@@ -86,6 +86,7 @@ export class MuseClient {
     private lastTimestamp: number | null = null;
 
     async connect(gatt?: BluetoothRemoteGATTServer) {
+        console.log('connect - you are in the muse-js local code')
         if (gatt) {
             this.gatt = gatt;
         } else {
