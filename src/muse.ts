@@ -234,6 +234,8 @@ export class MuseClient {
         const READING_DELTA = 1000 * (1.0 / frequency) * samplesPerReading;
         if (this.lastIndex === null || this.lastTimestamp === null) {
             this.lastIndex = eventIndex;
+            console.log('INIT DATE NOW:');
+            console.log(new Date().getTime());
             this.lastTimestamp = new Date().getTime() - READING_DELTA;
         }
 
